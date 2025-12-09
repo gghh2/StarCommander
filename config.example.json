@@ -1,0 +1,56 @@
+{
+  "commanders": {
+    "byRole": [
+      {
+        "roleId": "ID_ROLE_ETAT_MAJOR",
+        "roleName": "État-Major"
+      },
+      {
+        "roleId": "ID_ROLE_CHEF_ARTILLERIE",
+        "roleName": "Chef Artillerie"
+      },
+      {
+        "roleId": "ID_ROLE_CHEF_INGENIEUR",
+        "roleName": "Chef Ingénieur"
+      },
+      {
+        "roleId": "ID_ROLE_CHEF_ESCADRILLE",
+        "roleName": "Chef Escadrille"
+      }
+    ],
+    "byUser": []
+  },
+  "channels": {
+    "source": {
+      "id": "ID_SALON_COMMANDANTS",
+      "name": "Commandants"
+    },
+    "targets": [
+      {
+        "id": "ID_SALON_ARTILLEURS",
+        "name": "Artilleurs",
+        "tokenEnv": "RECEIVER_TOKEN_ARTILLEURS"
+      },
+      {
+        "id": "ID_SALON_INGENIEURS",
+        "name": "Ingénieurs",
+        "tokenEnv": "RECEIVER_TOKEN_INGENIEURS"
+      },
+      {
+        "id": "ID_SALON_ESCADRILLE",
+        "name": "Escadrille",
+        "tokenEnv": "RECEIVER_TOKEN_ESCADRILLE"
+      }
+    ]
+  },
+  "keybinds": {
+    "Numpad0": "all",
+    "Numpad1": "mute",
+    "Numpad2": "Artilleurs",
+    "Numpad3": "Ingénieurs",
+    "Numpad4": "Escadrille"
+  },
+  "server": {
+    "port": 3000
+  }
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+    <title>Star Commander Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: transparent;
+            overflow: hidden;
+            -webkit-app-region: drag;
+        }
+        
+        .overlay {
+            background: rgba(26, 26, 46, 0.85);
+            border: 2px solid #e94560;
+            border-radius: 8px;
+            padding: 8px 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .overlay.muted {
+            border-color: #666;
+            opacity: 0.7;
+        }
+        
+        .icon {
+            font-size: 14px;
+        }
+        
+        .channel-name {
+            color: #e94560;
+            font-weight: 600;
+            font-size: 14px;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .overlay.muted .channel-name {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay">
+        <span class="icon">📻</span>
+        <span class="channel-name" id="channel-name">MUTE</span>
+    </div>
+    
+    <script>
+        console.log('[Overlay] Script loaded, api:', !!window.api);
+        
+        if (window.api && window.api.onOverlayUpdate) {
+            window.api.onOverlayUpdate((channel) => {
+                console.log('[Overlay] Received update:', channel);
+                const overlay = document.getElementById('overlay');
+                const nameEl = document.getElementById('channel-name');
+                
+                nameEl.textContent = channel;
+                
+                if (channel === 'MUTE') {
+                    overlay.classList.add('muted');
+                } else {
+                    overlay.classList.remove('muted');
+                }
+            });
+        } else {
+            console.error('[Overlay] API not available!');
+        }
+    </script>
+</body>
+</html>

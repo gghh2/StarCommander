@@ -1,0 +1,72 @@
+{
+    "app": {
+        "name": "Star Commander",
+        "welcome": "Welcome to Star Commander"
+    },
+    "status": {
+        "stopped": "Stopped",
+        "running": "Running",
+        "starting": "Starting...",
+        "connected": "connected",
+        "disconnected": "disconnected"
+    },
+    "actions": {
+        "start": "Start",
+        "stop": "Stop",
+        "save": "Save",
+        "add": "Add",
+        "remove": "Remove",
+        "back": "Back",
+        "next": "Next",
+        "finish": "Finish"
+    },
+    "channels": {
+        "title": "Active Channel",
+        "all": "ALL",
+        "mute": "MUTE"
+    },
+    "tabs": {
+        "status": "Status",
+        "tokens": "Tokens",
+        "channels": "Channels",
+        "roles": "Roles",
+        "keybinds": "Keybinds"
+    },
+    "config": {
+        "emitterToken": "Emitter Token",
+        "receiverToken": "Receiver Token",
+        "sourceChannel": "Source Channel ID",
+        "targetName": "Target Name",
+        "targetId": "Target Channel ID",
+        "roleId": "Role ID",
+        "roleName": "Role Name",
+        "pressKey": "Press a key..."
+    },
+    "logs": {
+        "title": "Logs",
+        "started": "Relay started",
+        "stopped": "Relay stopped",
+        "targetChanged": "Target",
+        "speaking": "Speaking",
+        "saved": "saved",
+        "setupComplete": "Setup complete! Click Start to begin."
+    },
+    "wizard": {
+        "title": "Welcome to Star Commander",
+        "step1Title": "Step 1: Create Discord Bots",
+        "step1Desc": "You need to create 4 Discord bots:",
+        "step1List": [
+            "1 Emitter (listens in command channel)",
+            "3 Receivers (speak in target channels)"
+        ],
+        "step2Title": "Step 2: Enter Bot Tokens",
+        "step2Desc": "Copy the tokens from each bot:",
+        "step3Title": "Step 3: Configure Channels",
+        "step3Desc": "Enter your Discord channel IDs:"
+    },
+    "errors": {
+        "failedStart": "Failed to start",
+        "notReady": "not ready",
+        "channelNotFound": "Channel not found"
+    }
+}

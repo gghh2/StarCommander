@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+*.exe
+
+# Config (contains tokens)
+config.json
+starcommander-config.json
+
+# Electron
+*.log
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+*.bak
+*.tmp
+
+starcommander-config*.json
+
+starcommander-config*.json

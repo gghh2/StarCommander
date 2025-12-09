@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+    <title>Star Commander</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Custom Titlebar -->
+    <div class="titlebar">
+        <div class="titlebar-drag">
+            <span class="titlebar-icon">⭐</span>
+            <span class="titlebar-title">Star Commander</span>
+        </div>
+        <div class="titlebar-controls">
+            <button class="titlebar-btn" id="btn-minimize">─</button>
+            <button class="titlebar-btn btn-close" id="btn-close">✕</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-indicator" id="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Stopped</span>
+            </div>
+            <div class="status-actions">
+                <span class="mode-badge" id="mode-badge">👑 Commandant</span>
+                <button class="btn btn-overlay" id="btn-overlay" title="Toggle Overlay">🖥️</button>
+                <button class="btn btn-primary" id="btn-start">▶ Start</button>
+            </div>
+        </div>
+
+        <!-- Main Panel: 2 columns -->
+        <div class="main-panel">
+            <!-- Left: Channel Selector -->
+            <div class="channel-section">
+                <h3>📻 <span id="active-channel">MUTE</span></h3>
+                <div class="channel-grid" id="channel-grid">
+                    <button class="channel-btn active" data-target="mute">
+                        <span class="channel-name">MUTE</span>
+                        <span class="channel-key">1</span>
+                    </button>
+                    <button class="channel-btn" data-target="all">
+                        <span class="channel-name">ALL</span>
+                        <span class="channel-key">0</span>
+                    </button>
+                    <button class="channel-btn" data-target="channel1">
+                        <span class="channel-name" id="channel1-name">Channel 1</span>
+                        <span class="channel-key">2</span>
+                    </button>
+                    <button class="channel-btn" data-target="channel2">
+                        <span class="channel-name" id="channel2-name">Channel 2</span>
+                        <span class="channel-key">3</span>
+                    </button>
+                    <button class="channel-btn" data-target="channel3">
+                        <span class="channel-name" id="channel3-name">Channel 3</span>
+                        <span class="channel-key">4</span>
+                    </button>
+                </div>
+                <!-- Whisper button for Chiefs -->
+                <button class="btn btn-whisper" id="btn-whisper" style="display: none;">
+                    🎙️ Whisper
+                </button>
+            </div>
+
+            <!-- Right: Logs -->
+            <div class="logs-section">
+                <h3>📊 Logs</h3>
+                <div class="logs-container" id="logs-container">
+                    <div class="log-entry log-info">Welcome to Star Commander</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" id="tabs-container">
+            <button class="tab-btn active" data-tab="status">Status</button>
+            <button class="tab-btn" data-tab="bots">Bots</button>
+            <button class="tab-btn" data-tab="chiefs">Chiefs</button>
+            <button class="tab-btn" data-tab="keybinds">Keybinds</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Status Tab -->
+            <div class="tab-pane active" id="tab-status">
+                <!-- Commandant: Bot status grid -->
+                <div class="bot-status-grid" id="bot-status-grid">
+                    <div class="bot-status" id="emitter-status">
+                        <span class="bot-dot"></span>
+                        <span>Emitter</span>
+                    </div>
+                    <div class="bot-status" id="receiver1-status">
+                        <span class="bot-dot"></span>
+                        <span id="receiver1-name">Receiver 1</span>
+                    </div>
+                    <div class="bot-status" id="receiver2-status">
+                        <span class="bot-dot"></span>
+                        <span id="receiver2-name">Receiver 2</span>
+                    </div>
+                    <div class="bot-status" id="receiver3-status">
+                        <span class="bot-dot"></span>
+                        <span id="receiver3-name">Receiver 3</span>
+                    </div>
+                </div>
+                
+                <!-- Chief: Info section -->
+                <div id="chief-status-info" style="display: none;">
+                    <div class="chief-info-card">
+                        <h4>🎙️ Mode Chef</h4>
+                        <div class="chief-identity">
+                            <span class="chief-identity-name" id="chief-identity-name">-</span>
+                            <span class="chief-identity-channel">📢 <span id="chief-identity-channel">-</span></span>
+                        </div>
+                        <div class="chief-instructions">
+                            <p><strong>Whisper (toggle) :</strong></p>
+                            <ol>
+                                <li>Rejoignez votre channel vocal</li>
+                                <li>Cliquez sur Whisper pour l'activer</li>
+                                <li>Parlez - votre voix est relayée au Commandant</li>
+                                <li>Recliquez pour désactiver</li>
+                            </ol>
+                            <p class="whisper-note">⚠️ Votre channel vous entend toujours ! Le Whisper ajoute le Commandant en plus.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export/Import buttons for Commandant -->
+                <div id="export-section" style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button class="btn" id="btn-export-config">📤 Exporter config</button>
+                    <button class="btn" id="btn-import-config">📥 Importer config</button>
+                </div>
+                
+                <!-- Reset button -->
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <button class="btn btn-danger" id="btn-reset-config">🗑️ Reset complet</button>
+                </div>
+            </div>
+
+            <!-- Bots Tab (Commandant only) -->
+            <div class="tab-pane" id="tab-bots">
+                <div class="bot-config-section">
+                    <h4>🎧 Emitter <span class="bot-desc">- listens to commanders</span></h4>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2">
+                            <label>Bot Token</label>
+                            <input type="password" id="token-emitter" placeholder="Bot token...">
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Source Channel ID</label>
+                            <input type="text" id="channel-source" placeholder="Channel ID...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bot-config-section">
+                    <h4>📢 Receiver 1 <span class="bot-desc">- broadcasts to target</span></h4>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Display Name</label>
+                            <input type="text" id="name-receiver1" placeholder="e.g. Artilleurs">
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Target Channel ID</label>
+                            <input type="text" id="target1-id" placeholder="Channel ID...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Bot Token</label>
+                        <input type="password" id="token-receiver1" placeholder="Bot token...">
+                    </div>
+                </div>
+
+                <div class="bot-config-section">
+                    <h4>📢 Receiver 2 <span class="bot-desc">- broadcasts to target</span></h4>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Display Name</label>
+                            <input type="text" id="name-receiver2" placeholder="e.g. Ingénieurs">
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Target Channel ID</label>
+                            <input type="text" id="target2-id" placeholder="Channel ID...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Bot Token</label>
+                        <input type="password" id="token-receiver2" placeholder="Bot token...">
+                    </div>
+                </div>
+
+                <div class="bot-config-section">
+                    <h4>📢 Receiver 3 <span class="bot-desc">- broadcasts to target</span></h4>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Display Name</label>
+                            <input type="text" id="name-receiver3" placeholder="e.g. Escadrille">
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Target Channel ID</label>
+                            <input type="text" id="target3-id" placeholder="Channel ID...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Bot Token</label>
+                        <input type="password" id="token-receiver3" placeholder="Bot token...">
+                    </div>
+                </div>
+
+                <!-- Relay Channel for Whisper -->
+                <div class="bot-config-section">
+                    <h4>📡 Whisper Relay <span class="bot-desc">- for chief → commander communication</span></h4>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Channel ID (texte)</label>
+                            <input type="text" id="channel-relay" placeholder="Channel ID texte...">
+                        </div>
+                        <div class="form-group" style="flex: 2">
+                            <label>Webhook URL <a href="#" onclick="openExternal('https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks'); return false;">(comment créer ?)</a></label>
+                            <input type="text" id="webhook-relay" placeholder="https://discord.com/api/webhooks/...">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="btn-save-bots">Save All</button>
+            </div>
+
+            <!-- Chiefs Tab (Commandant: manage chiefs, Chef: view only) -->
+            <div class="tab-pane" id="tab-chiefs">
+                <p class="help-text">🎖️ Définissez les chefs et leur channel assigné.<br>Chaque chef pourra whisper vers le channel Commandants.</p>
+                <div id="chiefs-list"></div>
+                <div id="chiefs-add-section">
+                    <div class="form-row">
+                        <input type="text" id="new-chief-userid" placeholder="Discord User ID">
+                        <input type="text" id="new-chief-name" placeholder="Nom (ex: Raven)">
+                        <select id="new-chief-channel">
+                            <option value="">-- Channel --</option>
+                            <option value="receiver1">Receiver 1</option>
+                            <option value="receiver2">Receiver 2</option>
+                            <option value="receiver3">Receiver 3</option>
+                        </select>
+                        <button class="btn" id="btn-add-chief">Add</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keybinds Tab -->
+            <div class="tab-pane" id="tab-keybinds">
+                <p class="help-text">Click on a field and press the key you want to assign.</p>
+                <div id="keybinds-commandant">
+                    <div class="form-group">
+                        <label>All Channels</label>
+                        <input type="text" id="keybind-all" class="keybind-input" readonly placeholder="Press a key...">
+                    </div>
+                    <div class="form-group">
+                        <label>Mute</label>
+                        <input type="text" id="keybind-mute" class="keybind-input" readonly placeholder="Press a key...">
+                    </div>
+                    <div class="form-group">
+                        <label>Channel 1</label>
+                        <input type="text" id="keybind-channel1" class="keybind-input" readonly placeholder="Press a key...">
+                    </div>
+                    <div class="form-group">
+                        <label>Channel 2</label>
+                        <input type="text" id="keybind-channel2" class="keybind-input" readonly placeholder="Press a key...">
+                    </div>
+                    <div class="form-group">
+                        <label>Channel 3</label>
+                        <input type="text" id="keybind-channel3" class="keybind-input" readonly placeholder="Press a key...">
+                    </div>
+                </div>
+                <div id="keybinds-chief" style="display: none;">
+                    <div class="form-group">
+                        <label>🎤 Whisper (parler au commandant)</label>
+                        <input type="text" id="keybind-whisper" class="keybind-input" readonly placeholder="Press a key...">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btn-save-keybinds">Save Keybinds</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Wizard -->
+    <div class="wizard-overlay" id="wizard-overlay" style="display: none;">
+        <div class="wizard">
+            <h2>⭐ Welcome to Star Commander</h2>
+            
+            <!-- Step 0: Choose Mode -->
+            <div class="wizard-step" id="wizard-step-0">
+                <h3>Choisissez votre rôle</h3>
+                <p>Comment allez-vous utiliser Star Commander ?</p>
+                
+                <div class="mode-selection">
+                    <button class="mode-card" id="btn-mode-commandant">
+                        <span class="mode-icon">👑</span>
+                        <span class="mode-title">COMMANDANT</span>
+                        <span class="mode-desc">Je configure les bots et gère la flotte</span>
+                    </button>
+                    <button class="mode-card" id="btn-mode-chief">
+                        <span class="mode-icon">🎖️</span>
+                        <span class="mode-title">CHEF</span>
+                        <span class="mode-desc">J'importe la config du commandant</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- COMMANDANT FLOW -->
+            <!-- Step 0: Existing config? -->
+            <div class="wizard-step" id="wizard-step-cmd-0" style="display: none;">
+                <h3>Configuration existante ?</h3>
+                <p>Avez-vous déjà une configuration Star Commander à restaurer ?</p>
+                
+                <div class="mode-selection">
+                    <button class="mode-card" id="btn-cmd-import">
+                        <span class="mode-icon">📥</span>
+                        <span class="mode-title">OUI</span>
+                        <span class="mode-desc">J'ai un fichier config.json</span>
+                    </button>
+                    <button class="mode-card" id="btn-cmd-new">
+                        <span class="mode-icon">➕</span>
+                        <span class="mode-title">NON</span>
+                        <span class="mode-desc">Nouvelle configuration</span>
+                    </button>
+                </div>
+                
+                <button class="btn" onclick="wizardStep(0)">← Retour</button>
+            </div>
+            
+            <!-- Step 0b: Import for Commandant -->
+            <div class="wizard-step" id="wizard-step-cmd-import" style="display: none;">
+                <h3>Importer la configuration</h3>
+                <p>Sélectionnez votre fichier <strong>starcommander-config.json</strong></p>
+                
+                <div class="import-zone" id="import-zone-cmd">
+                    <span class="import-icon">📁</span>
+                    <span class="import-text">Cliquez pour sélectionner le fichier</span>
+                    <input type="file" id="import-file-cmd" accept=".json" style="display: none;">
+                </div>
+                
+                <div id="import-preview-cmd" style="display: none;">
+                    <p class="wizard-note success">✅ Config chargée !</p>
+                    <div class="import-info">
+                        <p><strong>Channels trouvés :</strong></p>
+                        <ul id="import-channels-list-cmd"></ul>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="wizardStep('cmd-0')">← Retour</button>
+                <button class="btn btn-primary" id="btn-cmd-import-finish" onclick="wizardFinishCommandantImport()" disabled>Terminer ✓</button>
+            </div>
+
+            <!-- Step 1: Create Bots -->
+            <div class="wizard-step" id="wizard-step-cmd-1" style="display: none;">
+                <h3>Step 1: Créer les Bots Discord</h3>
+                <p>Vous devez créer <strong>4 bots Discord</strong> :</p>
+                <ul>
+                    <li><strong>1 Emitter</strong> - écoute le channel commandants</li>
+                    <li><strong>3 Receivers</strong> - parlent dans les channels cibles</li>
+                </ul>
+                
+                <div class="wizard-instructions">
+                    <h4>📝 Pour chaque bot :</h4>
+                    <ol>
+                        <li>Allez sur <a href="#" onclick="openExternal('https://discord.com/developers/applications')">Discord Developer Portal</a></li>
+                        <li>Click <strong>"New Application"</strong> → Nommez-le</li>
+                        <li><strong>"Bot"</strong> tab → <strong>"Reset Token"</strong> → Copiez</li>
+                        <li>Activez <strong>Privileged Gateway Intents</strong> :
+                            <ul>
+                                <li>✅ Presence Intent</li>
+                                <li>✅ Server Members Intent <span class="required">(requis!)</span></li>
+                                <li>✅ Message Content Intent</li>
+                            </ul>
+                        </li>
+                        <li><strong>"OAuth2" → "URL Generator"</strong></li>
+                        <li>Scopes: <strong>bot</strong> | Permissions: <strong>Connect, Speak</strong></li>
+                        <li>Invitez le bot sur votre serveur</li>
+                    </ol>
+                </div>
+                
+                <p class="wizard-note">⚠️ Répétez pour les 4 bots, puis cliquez Suivant</p>
+                <button class="btn" onclick="wizardStep('cmd-0')">← Retour</button>
+                <button class="btn btn-primary" onclick="wizardStep('cmd-2')">Suivant →</button>
+            </div>
+            
+            <!-- Step 2: Tokens -->
+            <div class="wizard-step" id="wizard-step-cmd-2" style="display: none;">
+                <h3>Step 2: Tokens des Bots</h3>
+                <div class="form-group">
+                    <label>Emitter Token</label>
+                    <input type="password" id="wizard-token-emitter" placeholder="Collez le token...">
+                </div>
+                <div class="form-group">
+                    <label>Receiver 1 Token</label>
+                    <input type="password" id="wizard-token-receiver1" placeholder="Collez le token...">
+                </div>
+                <div class="form-group">
+                    <label>Receiver 2 Token</label>
+                    <input type="password" id="wizard-token-receiver2" placeholder="Collez le token...">
+                </div>
+                <div class="form-group">
+                    <label>Receiver 3 Token</label>
+                    <input type="password" id="wizard-token-receiver3" placeholder="Collez le token...">
+                </div>
+                <p class="wizard-note">🔒 Les tokens sont stockés localement uniquement</p>
+                <button class="btn" onclick="wizardStep('cmd-1')">← Retour</button>
+                <button class="btn btn-primary" onclick="wizardValidateStep2()">Suivant →</button>
+            </div>
+            
+            <!-- Step 3: Channels -->
+            <div class="wizard-step" id="wizard-step-cmd-3" style="display: none;">
+                <h3>Step 3: Configurer les Channels Vocaux</h3>
+                <p class="wizard-note">💡 Clic droit sur un channel → "Copier l'identifiant"</p>
+                
+                <div class="form-group">
+                    <label>Channel Source (Commandants) - vocal</label>
+                    <input type="text" id="wizard-channel-source" placeholder="Channel ID...">
+                </div>
+                <hr>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Target 1 - Nom</label>
+                        <input type="text" id="wizard-target1-name" placeholder="ex: Artilleurs">
+                    </div>
+                    <div class="form-group">
+                        <label>Channel ID (vocal)</label>
+                        <input type="text" id="wizard-target1-id" placeholder="Channel ID...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Target 2 - Nom</label>
+                        <input type="text" id="wizard-target2-name" placeholder="ex: Ingénieurs">
+                    </div>
+                    <div class="form-group">
+                        <label>Channel ID (vocal)</label>
+                        <input type="text" id="wizard-target2-id" placeholder="Channel ID...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Target 3 - Nom</label>
+                        <input type="text" id="wizard-target3-name" placeholder="ex: Pilotes">
+                    </div>
+                    <div class="form-group">
+                        <label>Channel ID (vocal)</label>
+                        <input type="text" id="wizard-target3-id" placeholder="Channel ID...">
+                    </div>
+                </div>
+                <button class="btn" onclick="wizardStep('cmd-2')">← Retour</button>
+                <button class="btn btn-primary" onclick="wizardValidateStep3()">Suivant →</button>
+            </div>
+            
+            <!-- Step 4: Whisper Relay -->
+            <div class="wizard-step" id="wizard-step-cmd-4" style="display: none;">
+                <h3>Step 4: Configurer le Whisper Relay</h3>
+                <p>Le Whisper permet aux chefs de parler directement au commandant.</p>
+                
+                <div class="wizard-instructions">
+                    <h4>📡 Créer le channel relay :</h4>
+                    <ol>
+                        <li>Créez un <strong>channel TEXTE privé</strong> (ex: "star-commander-relay")</li>
+                        <li>Dans les permissions du channel, <strong>ajoutez vos 4 bots</strong> :
+                            <ul>
+                                <li>✅ Voir le salon</li>
+                                <li>✅ Lire l'historique</li>
+                                <li>✅ Envoyer des messages</li>
+                                <li>✅ Gérer les messages (pour supprimer les commandes)</li>
+                            </ul>
+                        </li>
+                        <li>Clic droit sur le channel → <strong>"Copier l'identifiant"</strong></li>
+                    </ol>
+                </div>
+                
+                <div class="form-group">
+                    <label>📡 Channel Relay ID (texte)</label>
+                    <input type="text" id="wizard-channel-relay" placeholder="Channel ID du channel texte...">
+                </div>
+                
+                <div class="wizard-instructions" style="margin-top: 15px;">
+                    <h4>🔗 Créer le Webhook :</h4>
+                    <ol>
+                        <li><strong>Paramètres du serveur</strong> (clic sur le nom du serveur)</li>
+                        <li>Onglet <strong>"Intégrations"</strong></li>
+                        <li>Click <strong>"Webhooks"</strong> → <strong>"Nouveau webhook"</strong></li>
+                        <li>Sélectionnez le <strong>channel relay</strong> créé précédemment</li>
+                        <li>Click <strong>"Copier l'URL du webhook"</strong></li>
+                    </ol>
+                </div>
+                
+                <div class="form-group">
+                    <label>🔗 Webhook URL</label>
+                    <input type="text" id="wizard-webhook-relay" placeholder="https://discord.com/api/webhooks/...">
+                </div>
+                
+                <p class="wizard-note">⚠️ Sans cette configuration, le Whisper ne fonctionnera pas !</p>
+                
+                <button class="btn" onclick="wizardStep('cmd-3')">← Retour</button>
+                <button class="btn btn-primary" onclick="wizardValidateStep4()">Terminer ✓</button>
+            </div>
+
+            <!-- CHIEF FLOW -->
+            <!-- Step 1: Import Config -->
+            <div class="wizard-step" id="wizard-step-chief-1" style="display: none;">
+                <h3>Step 1: Importer la config</h3>
+                <p>Demandez le fichier <strong>starcommander-config.json</strong> à votre commandant.</p>
+                
+                <div class="import-zone" id="import-zone">
+                    <span class="import-icon">📁</span>
+                    <span class="import-text">Cliquez pour sélectionner le fichier</span>
+                    <input type="file" id="import-file" accept=".json" style="display: none;">
+                </div>
+                
+                <div id="import-preview" style="display: none;">
+                    <p class="wizard-note success">✅ Config chargée !</p>
+                    <div class="import-info">
+                        <p><strong>Channels disponibles :</strong></p>
+                        <ul id="import-channels-list"></ul>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="wizardStep(0)">← Retour</button>
+                <button class="btn btn-primary" id="btn-chief-next" onclick="wizardStep('chief-2')" disabled>Suivant →</button>
+            </div>
+            
+            <!-- Step 2: Select Identity -->
+            <div class="wizard-step" id="wizard-step-chief-2" style="display: none;">
+                <h3>Step 2: Identifiez-vous</h3>
+                <p>Sélectionnez votre rôle parmi les chefs configurés :</p>
+                
+                <div class="form-group">
+                    <label>Vous êtes...</label>
+                    <select id="wizard-chief-select" class="chief-select">
+                        <option value="">-- Sélectionnez --</option>
+                    </select>
+                </div>
+                
+                <div id="chief-info" style="display: none;">
+                    <p class="wizard-note">📢 Vous serez dans le channel <strong id="chief-channel-name"></strong></p>
+                    <p class="wizard-note">🎤 Utilisez Whisper pour parler au commandant</p>
+                </div>
+                
+                <button class="btn" onclick="wizardStep('chief-1')">← Retour</button>
+                <button class="btn btn-primary" id="btn-chief-finish" onclick="wizardFinishChief()" disabled>Terminer ✓</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
