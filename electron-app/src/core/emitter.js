@@ -332,4 +332,11 @@ function isReady() {
     return !!currentConnection && !!audioPlayer;
 }
 
-module.exports = { start, stop, resubscribeSpeakingUsers, getClient, playStream, playRawStream, isReady };
+function stopPlayback() {
+    if (audioPlayer) {
+        audioPlayer.stop();
+        console.log('[Emitter] Playback stopped');
+    }
+}
+
+module.exports = { start, stop, resubscribeSpeakingUsers, getClient, playStream, playRawStream, isReady, stopPlayback };

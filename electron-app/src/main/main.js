@@ -329,7 +329,8 @@ function setupIPC() {
     });
     
     ipcMain.handle('relay-set-target', (event, target) => {
-        if (relayManager) {
+        // Don't call relayManager for whisper (it's just for overlay update)
+        if (relayManager && target !== 'whisper') {
             relayManager.setTarget(target);
         }
         
@@ -339,6 +340,8 @@ function setupIPC() {
             displayName = 'ALL';
         } else if (target === 'mute') {
             displayName = 'MUTE';
+        } else if (target === 'whisper') {
+            displayName = 'WHISPER';
         } else if (target.startsWith('channel')) {
             const index = parseInt(target.replace('channel', '')) - 1;
             const targets = store.get('channels.targets') || [];
@@ -424,6 +427,8 @@ function setupIPC() {
     // Mark setup as complete
     ipcMain.handle('setup-complete', () => {
         store.set('setupComplete', true);
+        // Re-register keybinds after setup (config now loaded)
+        registerKeybinds();
         return true;
     });
     

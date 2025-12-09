@@ -16,6 +16,7 @@ class RelayManager {
         this.receivers = [];
         this.globalTarget = 'mute';
         this.activeStreams = [];
+        this.whisperStreams = []; // Separate tracking for whisper streams
         this.isRunning = false;
         this.whisperStates = new Map(); // userId -> { active, channelKey }
         this.relayChannelId = null;
@@ -60,6 +61,21 @@ class RelayManager {
             }
         });
         this.activeStreams = [];
+    }
+    
+    killWhisperStreams() {
+        console.log('[RelayManager] Killing whisper streams:', this.whisperStreams.length);
+        this.whisperStreams.forEach(stream => {
+            if (stream && !stream.destroyed) {
+                stream.destroy();
+            }
+        });
+        this.whisperStreams = [];
+        
+        // Also stop the emitter's audio player
+        if (EmitterBot.isReady()) {
+            EmitterBot.stopPlayback();
+        }
     }
     
     async start() {
@@ -320,6 +336,9 @@ class RelayManager {
         }
         
         this.whisperStates.delete(userId);
+        
+        // Kill all whisper streams immediately
+        this.killWhisperStreams();
     }
     
     // Handle whisper audio (from chief to commandant channel)
@@ -330,11 +349,12 @@ class RelayManager {
         
         // Play the audio through the Emitter (to Commandants channel)
         if (EmitterBot.isReady()) {
-            this.activeStreams.push(audioStream);
+            // Track in whisperStreams (not activeStreams)
+            this.whisperStreams.push(audioStream);
             EmitterBot.playStream(audioStream);
             
             audioStream.on('end', () => {
-                this.activeStreams = this.activeStreams.filter(s => s !== audioStream);
+                this.whisperStreams = this.whisperStreams.filter(s => s !== audioStream);
             });
         } else {
             this.emit('warning', { message: 'Emitter not ready for whisper playback' });

@@ -99,6 +99,12 @@ function applyModeUI() {
         
         // Show chief's assigned channel
         updateChiefChannelDisplay();
+        
+        // Auto-enable overlay for chiefs and show MUTE
+        window.api.overlay.toggle(true);
+        window.api.relay.setTarget('mute');
+        overlayEnabled = true;
+        updateOverlayButton();
     }
 }
 
@@ -389,6 +395,9 @@ async function startWhisper() {
     const btnWhisper = document.getElementById('btn-whisper');
     if (btnWhisper) btnWhisper.classList.add('active');
     
+    // Update overlay
+    window.api.relay.setTarget('whisper');
+    
     // Send whisper ON command via Discord
     const result = await window.api.relay.whisper(true);
     if (result.success) {
@@ -397,20 +406,29 @@ async function startWhisper() {
         addLog(`❌ Whisper error: ${result.error}`, 'error');
         isWhispering = false;
         if (btnWhisper) btnWhisper.classList.remove('active');
+        // Reset overlay
+        window.api.relay.setTarget('mute');
     }
 }
 
 async function stopWhisper() {
     if (!isWhispering) return;
     
+    // Update UI immediately
     isWhispering = false;
     
     const btnWhisper = document.getElementById('btn-whisper');
     if (btnWhisper) btnWhisper.classList.remove('active');
     
-    // Send whisper OFF command via Discord
-    await window.api.relay.whisper(false);
+    // Update overlay immediately
+    window.api.relay.setTarget('mute');
+    
     addLog('🎤 Whisper: OFF', 'info');
+    
+    // Send whisper OFF command (fire and forget - don't wait)
+    window.api.relay.whisper(false).catch(err => {
+        console.error('Whisper OFF error:', err);
+    });
 }
 
 function toggleWhisperMode() {
