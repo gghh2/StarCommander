@@ -1,9 +1,19 @@
 {
-  "$schema":  "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
-  "packages": [],
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
+  "packages": [
+    "python@latest",
+    "uv@latest"
+  ],
+  "env": {
+    "UV_PROJECT": "$DEVBOX_PROJECT_ROOT/app",
+    "VENV_DIR":   "$DEVBOX_PROJECT_ROOT/app/.venv"
+  },
   "shell": {
     "init_hook": [
-      "echo 'Welcome to devbox!' > /dev/null"
+      "echo Syncing with UV...",
+      "uv sync --active",
+      "echo Done!",
+      "source $VENV_DIR/bin/activate"
     ],
     "scripts": {
       "test": [
