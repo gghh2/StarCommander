@@ -26,7 +26,8 @@ contextBridge.exposeInMainWorld('api', {
         stop: () => ipcRenderer.invoke('relay-stop'),
         setTarget: (target) => ipcRenderer.invoke('relay-set-target', target),
         whisper: (enabled) => ipcRenderer.invoke('relay-whisper', enabled),
-        briefing: (enabled) => ipcRenderer.invoke('relay-briefing', enabled)
+        briefing: (enabled) => ipcRenderer.invoke('relay-briefing', enabled),
+        updateAudioSettings: (settings) => ipcRenderer.invoke('relay-update-audio-settings', settings)
     },
     
     // Events

@@ -194,6 +194,28 @@ async function loadConfig() {
     
     const briefingInput = document.getElementById('keybind-briefing');
     if (briefingInput) briefingInput.value = keybinds.briefing || '';
+    
+    // Options
+    const settings = config.settings || {};
+    const radioEffectCheckbox = document.getElementById('option-radio-effect');
+    const radioIntensitySlider = document.getElementById('option-radio-intensity');
+    const radioIntensityValue = document.getElementById('radio-intensity-value');
+    const clickSoundCheckbox = document.getElementById('option-click-sound');
+    
+    if (radioEffectCheckbox) radioEffectCheckbox.checked = settings.radioEffectEnabled !== false;
+    if (clickSoundCheckbox) clickSoundCheckbox.checked = settings.clickSoundEnabled !== false;
+    
+    if (radioIntensitySlider) {
+        const intensity = settings.radioEffectIntensity ?? 50;
+        radioIntensitySlider.value = intensity;
+        if (radioIntensityValue) radioIntensityValue.textContent = intensity + '%';
+    }
+    
+    // Show/hide intensity slider based on radio effect state
+    const intensityRow = document.getElementById('radio-intensity-row');
+    if (intensityRow && radioEffectCheckbox) {
+        intensityRow.style.display = radioEffectCheckbox.checked ? 'flex' : 'none';
+    }
 }
 
 // Setup event listeners
@@ -221,6 +243,7 @@ function setupEventListeners() {
     // Save buttons
     document.getElementById('btn-save-bots').onclick = saveBots;
     document.getElementById('btn-save-keybinds').onclick = saveKeybinds;
+    document.getElementById('btn-save-options').onclick = saveOptions;
     document.getElementById('btn-add-chief').onclick = addChief;
     
     // Export config
@@ -288,6 +311,26 @@ function setupEventListeners() {
     const btnBriefing = document.getElementById('btn-briefing');
     if (btnBriefing) {
         btnBriefing.onclick = () => toggleBriefingMode();
+    }
+    
+    // Radio intensity slider
+    const radioIntensitySlider = document.getElementById('option-radio-intensity');
+    if (radioIntensitySlider) {
+        radioIntensitySlider.oninput = () => {
+            const value = radioIntensitySlider.value;
+            document.getElementById('radio-intensity-value').textContent = value + '%';
+        };
+    }
+    
+    // Show/hide intensity slider based on radio effect toggle
+    const radioEffectCheckbox = document.getElementById('option-radio-effect');
+    if (radioEffectCheckbox) {
+        radioEffectCheckbox.onchange = () => {
+            const intensityRow = document.getElementById('radio-intensity-row');
+            if (intensityRow) {
+                intensityRow.style.display = radioEffectCheckbox.checked ? 'flex' : 'none';
+            }
+        };
     }
 }
 
@@ -689,6 +732,31 @@ async function saveKeybinds() {
     
     await window.api.config.set('keybinds', keybinds);
     addLog('Keybinds saved', 'success');
+}
+
+// Save options
+async function saveOptions() {
+    const radioEffectEnabled = document.getElementById('option-radio-effect').checked;
+    const radioEffectIntensity = parseInt(document.getElementById('option-radio-intensity').value);
+    const clickSoundEnabled = document.getElementById('option-click-sound').checked;
+    
+    const config = await window.api.config.get();
+    const settings = config.settings || {};
+    
+    settings.radioEffectEnabled = radioEffectEnabled;
+    settings.radioEffectIntensity = radioEffectIntensity;
+    settings.clickSoundEnabled = clickSoundEnabled;
+    
+    await window.api.config.set('settings', settings);
+    
+    // Update relay in real-time (if running)
+    await window.api.relay.updateAudioSettings({
+        radioEffectEnabled,
+        radioEffectIntensity,
+        clickSoundEnabled
+    });
+    
+    addLog('Options saved', 'success');
 }
 
 // Handle keybind capture

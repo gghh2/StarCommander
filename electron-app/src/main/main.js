@@ -46,7 +46,10 @@ const store = new Store({
             startMinimized: false,
             minimizeToTray: true,
             overlayEnabled: false,
-            overlayPosition: { x: 20, y: 20 }
+            overlayPosition: { x: 20, y: 20 },
+            radioEffectEnabled: true,
+            radioEffectIntensity: 50,
+            clickSoundEnabled: true
         },
         setupComplete: false
     }
@@ -79,8 +82,12 @@ async function cleanupBeforeClose() {
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 900,
-        height: 700,
-        resizable: false,
+        height: 850,
+        minWidth: 900,
+        maxWidth: 900,
+        minHeight: 500,
+        maxHeight: 1000,
+        resizable: true,
         maximizable: false,
         frame: false,
         webPreferences: {
@@ -439,6 +446,15 @@ function setupIPC() {
         } catch (err) {
             return { success: false, error: err.message };
         }
+    });
+    
+    // Update audio settings in real-time
+    ipcMain.handle('relay-update-audio-settings', (event, settings) => {
+        if (relayManager) {
+            relayManager.updateAudioSettings(settings);
+            return { success: true };
+        }
+        return { success: false, error: 'Relay not running' };
     });
     
     // Check if first launch (setup not complete)

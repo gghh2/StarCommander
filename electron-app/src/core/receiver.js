@@ -108,7 +108,7 @@ function createReceiver(name, token, channelId) {
             console.log(`[${name}] Whisper: capturing audio from ${userId}`);
             
             const audioStream = receiver.subscribe(userId, {
-                end: { behavior: 'afterSilence', duration: 500 }
+                end: { behavior: 'afterSilence', duration: 100 }
             });
             
             if (onWhisperCallback) {
@@ -215,7 +215,8 @@ function createReceiver(name, token, channelId) {
         playStream,
         playRawStream,
         startListening,
-        stopListening
+        stopListening,
+        get audioPlayer() { return audioPlayer; }
     };
 }
 

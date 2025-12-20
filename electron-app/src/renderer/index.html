@@ -88,6 +88,7 @@
             <button class="tab-btn" data-tab="bots">Bots</button>
             <button class="tab-btn" data-tab="chiefs">Chiefs</button>
             <button class="tab-btn" data-tab="keybinds">Keybinds</button>
+            <button class="tab-btn" data-tab="options">Options</button>
         </div>
 
         <!-- Tab Content -->
@@ -290,6 +291,49 @@
                     </div>
                 </div>
                 <button class="btn btn-primary" id="btn-save-keybinds">Save Keybinds</button>
+            </div>
+
+            <!-- Options Tab -->
+            <div class="tab-pane" id="tab-options">
+                <h4>🔊 Effets Audio</h4>
+                <p class="help-text">Ces effets s'appliquent uniquement aux voix relayées entre channels.</p>
+                
+                <div class="option-group">
+                    <div class="option-item">
+                        <div class="option-info">
+                            <span class="option-label">📻 Effet radio (talkie-walkie)</span>
+                            <span class="option-desc">Applique un filtre radio sur les voix transmises</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="option-radio-effect" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="option-item" id="radio-intensity-row">
+                        <div class="option-info">
+                            <span class="option-label">🎚️ Intensité de l'effet</span>
+                            <span class="option-desc">0% = léger, 100% = fort</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="option-radio-intensity" min="0" max="100" value="50" class="slider">
+                            <span class="slider-value" id="radio-intensity-value">50%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="option-item">
+                        <div class="option-info">
+                            <span class="option-label">🔘 Son de clic radio</span>
+                            <span class="option-desc">Joue un clic au début de chaque transmission</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="option-click-sound" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="btn-save-options">Save Options</button>
             </div>
         </div>
     </div>

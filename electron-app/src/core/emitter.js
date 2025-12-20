@@ -171,7 +171,7 @@ async function resubscribeSpeakingUsers() {
             if (!auth.authorized) continue;
             
             const audioStream = receiver.subscribe(oderId, {
-                end: { behavior: 'afterSilence', duration: 500 }
+                end: { behavior: 'afterSilence', duration: 100 }
             });
             
             if (onSpeakingCallback) {
@@ -234,7 +234,7 @@ async function joinAndListen(channel) {
         console.log(`[Emitter] Relaying ${member.displayName} to: ${currentTarget}`);
         
         const audioStream = receiver.subscribe(userId, {
-            end: { behavior: 'afterSilence', duration: 500 }
+            end: { behavior: 'afterSilence', duration: 100 }
         });
         
         if (onSpeakingCallback) {
@@ -339,4 +339,18 @@ function stopPlayback() {
     }
 }
 
-module.exports = { start, stop, resubscribeSpeakingUsers, getClient, playStream, playRawStream, isReady, stopPlayback };
+// Play a pre-made audio resource (for click sounds)
+function playResource(resource) {
+    if (!currentConnection || !audioPlayer) {
+        console.error('[Emitter] Not ready to play resource!');
+        return;
+    }
+    
+    try {
+        audioPlayer.play(resource);
+    } catch (error) {
+        console.error('[Emitter] Failed to play resource:', error.message);
+    }
+}
+
+module.exports = { start, stop, resubscribeSpeakingUsers, getClient, playStream, playRawStream, isReady, stopPlayback, playResource };
