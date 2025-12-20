@@ -1,0 +1,16 @@
+{
+  // General VSCode settings
+  "editor.formatOnSave": true,
+  // Copilot settings
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  // Conventional Commits settings
+  "conventionalCommits.gitmoji": false,
+  "conventionalCommits.scopes": [
+    "core",
+    "ui",
+    "docs",
+    "tests",
+    "build",
+    "deps"
+  ]
+}

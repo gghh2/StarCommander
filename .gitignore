@@ -2,11 +2,10 @@
 node_modules/
 
 # Environment variables (contains secrets!)
-.env
+**/.env
 
 # Personal configuration (contains tokens/user IDs)
-config.json
-starcommander-config.json
+**/*.config.json
 
 # Logs
 *.log
@@ -18,9 +17,7 @@ npm-debug.log*
 Thumbs.db
 Desktop.ini
 
-# IDE
-.vscode/
-.idea/
+# IDE tmp files
 *.swp
 *.swo
 
