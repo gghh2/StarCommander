@@ -21,6 +21,10 @@ class RelayManager {
         this.whisperStates = new Map(); // userId -> { active, channelKey }
         this.relayChannelId = null;
         this.myChiefId = null;
+        
+        // Briefing mode
+        this.isBriefingActive = false;
+        this.originalPositions = new Map(); // oderId -> originalChannelId
     }
     
     emit(event, data) {
@@ -412,6 +416,115 @@ class RelayManager {
         } catch (err) {
             this.emit('error', { message: `Failed to send whisper command: ${err.message}` });
         }
+    }
+    
+    // Start briefing mode - move everyone to QG channel
+    async startBriefing() {
+        if (this.isBriefingActive) {
+            this.emit('warning', { message: 'Briefing already active' });
+            return;
+        }
+        
+        const client = EmitterBot.getClient();
+        if (!client) {
+            throw new Error('Emitter client not available');
+        }
+        
+        const qgChannelId = this.config.channels?.source?.id;
+        if (!qgChannelId) {
+            throw new Error('QG channel not configured');
+        }
+        
+        this.emit('info', { message: '📢 Début du briefing...' });
+        
+        let movedCount = 0;
+        
+        // For each target channel, move all members to QG
+        for (const target of this.config.channels?.targets || []) {
+            try {
+                const channel = await client.channels.fetch(target.id);
+                if (!channel || !channel.members) continue;
+                
+                // Get all members in this voice channel
+                for (const [memberId, member] of channel.members) {
+                    // Skip bots
+                    if (member.user.bot) continue;
+                    
+                    // Save original position
+                    this.originalPositions.set(memberId, target.id);
+                    
+                    // Move to QG
+                    try {
+                        await member.voice.setChannel(qgChannelId);
+                        movedCount++;
+                        console.log(`[Briefing] Moved ${member.displayName} to QG`);
+                    } catch (e) {
+                        console.error(`[Briefing] Failed to move ${member.displayName}:`, e.message);
+                    }
+                }
+            } catch (e) {
+                console.error(`[Briefing] Error fetching channel ${target.id}:`, e.message);
+            }
+        }
+        
+        this.isBriefingActive = true;
+        this.emit('briefing-started', { movedCount });
+        this.emit('info', { message: `📢 Briefing actif - ${movedCount} membres déplacés vers QG` });
+    }
+    
+    // End briefing mode - return everyone to original channels
+    async endBriefing() {
+        if (!this.isBriefingActive) {
+            this.emit('warning', { message: 'No briefing active' });
+            return;
+        }
+        
+        const client = EmitterBot.getClient();
+        if (!client) {
+            throw new Error('Emitter client not available');
+        }
+        
+        this.emit('info', { message: '📢 Fin du briefing...' });
+        
+        let movedCount = 0;
+        const qgChannelId = this.config.channels?.source?.id;
+        
+        // Get the QG channel to find members
+        try {
+            const qgChannel = await client.channels.fetch(qgChannelId);
+            if (!qgChannel || !qgChannel.members) {
+                throw new Error('QG channel not found');
+            }
+            
+            // Move each member back to their original channel
+            for (const [memberId, originalChannelId] of this.originalPositions) {
+                try {
+                    // Check if member is still in QG
+                    const member = qgChannel.members.get(memberId);
+                    if (member) {
+                        await member.voice.setChannel(originalChannelId);
+                        movedCount++;
+                        console.log(`[Briefing] Returned ${member.displayName} to original channel`);
+                    }
+                } catch (e) {
+                    console.error(`[Briefing] Failed to return member ${memberId}:`, e.message);
+                }
+            }
+        } catch (e) {
+            console.error('[Briefing] Error ending briefing:', e.message);
+        }
+        
+        // Clear state
+        this.originalPositions.clear();
+        this.isBriefingActive = false;
+        
+        this.emit('briefing-ended', { movedCount });
+        this.emit('info', { message: `📢 Briefing terminé - ${movedCount} membres renvoyés` });
+    }
+    
+    // Check if briefing is active
+    isBriefingMode() {
+        return this.isBriefingActive;
     }
 }
 

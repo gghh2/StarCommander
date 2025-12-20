@@ -9,6 +9,7 @@ let currentTarget = 'mute';
 let overlayEnabled = false;
 let appMode = null; // 'commandant' or 'chief'
 let importedConfig = null; // Temp storage for imported config
+let isBriefing = false; // Briefing mode active
 
 // DOM Elements
 const statusIndicator = document.getElementById('status-indicator');
@@ -55,6 +56,7 @@ function applyModeUI() {
     const keybindsCommandant = document.getElementById('keybinds-commandant');
     const keybindsChief = document.getElementById('keybinds-chief');
     const btnWhisper = document.getElementById('btn-whisper');
+    const btnBriefing = document.getElementById('btn-briefing');
     const tabBots = document.querySelector('[data-tab="bots"]');
     const tabChiefs = document.querySelector('[data-tab="chiefs"]');
     
@@ -71,6 +73,7 @@ function applyModeUI() {
         if (keybindsCommandant) keybindsCommandant.style.display = 'block';
         if (keybindsChief) keybindsChief.style.display = 'none';
         if (btnWhisper) btnWhisper.style.display = 'none';
+        if (btnBriefing) btnBriefing.style.display = 'block';
         if (tabBots) tabBots.style.display = '';
         if (tabChiefs) tabChiefs.style.display = '';
         if (channelGrid) channelGrid.style.display = 'grid';
@@ -85,6 +88,7 @@ function applyModeUI() {
         if (keybindsCommandant) keybindsCommandant.style.display = 'none';
         if (keybindsChief) keybindsChief.style.display = 'block';
         if (btnWhisper) btnWhisper.style.display = 'block';
+        if (btnBriefing) btnBriefing.style.display = 'none';
         if (tabBots) tabBots.style.display = 'none';
         if (tabChiefs) tabChiefs.style.display = 'none';
         // Hide channel selector and start button for chiefs
@@ -187,6 +191,9 @@ async function loadConfig() {
     
     const whisperInput = document.getElementById('keybind-whisper');
     if (whisperInput) whisperInput.value = keybinds.whisper || '';
+    
+    const briefingInput = document.getElementById('keybind-briefing');
+    if (briefingInput) briefingInput.value = keybinds.briefing || '';
 }
 
 // Setup event listeners
@@ -275,6 +282,12 @@ function setupEventListeners() {
     const btnWhisper = document.getElementById('btn-whisper');
     if (btnWhisper) {
         btnWhisper.onclick = () => toggleWhisperMode();
+    }
+    
+    // Briefing button (toggle mode, Commandant only)
+    const btnBriefing = document.getElementById('btn-briefing');
+    if (btnBriefing) {
+        btnBriefing.onclick = () => toggleBriefingMode();
     }
 }
 
@@ -371,8 +384,11 @@ async function setTarget(target) {
 // Handle keybind press from main process
 function handleKeybindPress(target) {
     if (target === 'whisper') {
-        // Toggle whisper on keybind (could be improved with press/release detection)
+        // Toggle whisper on keybind
         toggleWhisperMode();
+    } else if (target === 'briefing') {
+        // Toggle briefing on keybind (Commandant only)
+        toggleBriefingMode();
     } else {
         setTarget(target);
     }
@@ -439,6 +455,67 @@ function toggleWhisperMode() {
     }
 }
 
+// Briefing functions (Commandant only)
+async function startBriefing() {
+    if (isBriefing) return;
+    
+    // Briefing is only for Commandants
+    if (appMode !== 'commandant') {
+        addLog('Briefing réservé aux Commandants', 'warning');
+        return;
+    }
+    
+    // Relay must be running
+    if (!isRunning) {
+        addLog('Lancez le relay avant le briefing', 'warning');
+        return;
+    }
+    
+    isBriefing = true;
+    
+    const btnBriefing = document.getElementById('btn-briefing');
+    if (btnBriefing) btnBriefing.classList.add('active');
+    
+    // Update overlay
+    window.api.relay.setTarget('briefing');
+    
+    // Start briefing
+    const result = await window.api.relay.briefing(true);
+    if (!result.success) {
+        addLog(`❌ Briefing error: ${result.error}`, 'error');
+        isBriefing = false;
+        if (btnBriefing) btnBriefing.classList.remove('active');
+        window.api.relay.setTarget('mute');
+    }
+}
+
+async function endBriefing() {
+    if (!isBriefing) return;
+    
+    // Update UI immediately
+    isBriefing = false;
+    
+    const btnBriefing = document.getElementById('btn-briefing');
+    if (btnBriefing) btnBriefing.classList.remove('active');
+    
+    // Update overlay
+    window.api.relay.setTarget('mute');
+    
+    // End briefing
+    const result = await window.api.relay.briefing(false);
+    if (!result.success) {
+        addLog(`❌ End briefing error: ${result.error}`, 'error');
+    }
+}
+
+function toggleBriefingMode() {
+    if (isBriefing) {
+        endBriefing();
+    } else {
+        startBriefing();
+    }
+}
+
 // Handle relay events
 function handleRelayEvent({ event, data }) {
     switch (event) {
@@ -477,6 +554,12 @@ function handleRelayEvent({ event, data }) {
             break;
         case 'warning':
             addLog(data.message, 'warning');
+            break;
+        case 'briefing-started':
+            addLog(`📢 Briefing démarré - ${data.movedCount} membres déplacés`, 'success');
+            break;
+        case 'briefing-ended':
+            addLog(`📢 Briefing terminé - ${data.movedCount} membres renvoyés`, 'success');
             break;
     }
 }
@@ -597,6 +680,11 @@ async function saveKeybinds() {
     const whisperInput = document.getElementById('keybind-whisper');
     if (whisperInput) {
         keybinds.whisper = whisperInput.value;
+    }
+    
+    const briefingInput = document.getElementById('keybind-briefing');
+    if (briefingInput) {
+        keybinds.briefing = briefingInput.value;
     }
     
     await window.api.config.set('keybinds', keybinds);

@@ -39,7 +39,8 @@ const store = new Store({
             channel1: 'num2',
             channel2: 'num3',
             channel3: 'num4',
-            whisper: 'num9'
+            whisper: 'num9',
+            briefing: 'num5'
         },
         settings: {
             startMinimized: false,
@@ -242,6 +243,7 @@ function registerKeybinds() {
     registerKey(keybinds.channel2, 'channel2');
     registerKey(keybinds.channel3, 'channel3');
     registerKey(keybinds.whisper, 'whisper');
+    registerKey(keybinds.briefing, 'briefing');
 }
 
 // Clear require cache for core modules (needed for restart)
@@ -342,6 +344,8 @@ function setupIPC() {
             displayName = 'MUTE';
         } else if (target === 'whisper') {
             displayName = 'WHISPER';
+        } else if (target === 'briefing') {
+            displayName = 'BRIEFING';
         } else if (target.startsWith('channel')) {
             const index = parseInt(target.replace('channel', '')) - 1;
             const targets = store.get('channels.targets') || [];
@@ -413,6 +417,24 @@ function setupIPC() {
                 event: 'whisper-sent', 
                 data: { enabled } 
             });
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    });
+    
+    // Briefing mode control (Commandant only)
+    ipcMain.handle('relay-briefing', async (event, enabled) => {
+        if (!relayManager) {
+            return { success: false, error: 'Relay not running' };
+        }
+        
+        try {
+            if (enabled) {
+                await relayManager.startBriefing();
+            } else {
+                await relayManager.endBriefing();
+            }
             return { success: true };
         } catch (err) {
             return { success: false, error: err.message };
