@@ -1,6 +1,8 @@
 {
   // General VSCode settings
   "editor.formatOnSave": true,
+  // Python settings
+  "python.defaultInterpreterPath": "./app/.venv/bin/python",
   // Copilot settings
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   // Conventional Commits settings
