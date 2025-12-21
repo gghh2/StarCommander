@@ -41,3 +41,17 @@ The original Node.js + AutoHotkey version is archived in [`legacy/`](./legacy/) 
 ## License
 
 MIT
+
+# Star Commander V4.0 🚀
+
+**Star Commander** is a professional voice relay system for Discord, designed for fleet coordination in Star Citizen. It enables commanders to broadcast to multiple specialized channels simultaneously while allowing team leaders to communicate back via whisper.
+
+**Key Features:**
+- Multi-channel voice relay with role-based broadcasting
+- Whisper system for bidirectional communication
+- Briefing mode for fleet gatherings
+- Radio effects (walkie-talkie filter, click sounds)
+- Multilingual interface (8 languages)
+- Customizable Star Citizen theme
+
+Perfect for managing complex fleet operations with artillery, engineers, pilots, and specialized teams.
