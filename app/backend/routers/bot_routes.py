@@ -210,7 +210,7 @@ def switch_bot_activation_endpoint(bot_id: str, db=Depends(get_db)):
     "/{bot_id}",
     summary="Delete Bot",
     description="Delete a bot by its ID.",
-    response_description="Deletion status message",
+    status_code=204,
     responses={
         204: {
             "description": "Bot deleted successfully.",
