@@ -458,19 +458,19 @@
             
             <!-- Step 0: Choose Mode -->
             <div class="wizard-step" id="wizard-step-0">
-                <h3>Choisissez votre rôle</h3>
-                <p>Comment allez-vous utiliser Star Commander ?</p>
+                <h3 data-i18n="wizard.chooseRole">Choose your role</h3>
+                <p data-i18n="wizard.roleQuestion">How will you use Star Commander?</p>
                 
                 <div class="mode-selection">
                     <button class="mode-card" id="btn-mode-commandant">
                         <span class="mode-icon">👑</span>
-                        <span class="mode-title">COMMANDANT</span>
-                        <span class="mode-desc">Je configure les bots et gère la flotte</span>
+                        <span class="mode-title" data-i18n="wizard.commander">COMMANDER</span>
+                        <span class="mode-desc" data-i18n="wizard.commander_desc">I configure the bots and manage the fleet</span>
                     </button>
                     <button class="mode-card" id="btn-mode-chief">
                         <span class="mode-icon">🎖️</span>
-                        <span class="mode-title">CHEF</span>
-                        <span class="mode-desc">J'importe la config du commandant</span>
+                        <span class="mode-title" data-i18n="wizard.chief">CHIEF</span>
+                        <span class="mode-desc" data-i18n="wizard.chief_desc">I import the commander's configuration</span>
                     </button>
                 </div>
             </div>
@@ -478,240 +478,240 @@
             <!-- COMMANDANT FLOW -->
             <!-- Step 0: Existing config? -->
             <div class="wizard-step" id="wizard-step-cmd-0" style="display: none;">
-                <h3>Configuration existante ?</h3>
-                <p>Avez-vous déjà une configuration Star Commander à restaurer ?</p>
+                <h3 data-i18n="wizard.existingConfig">Do you have an existing configuration?</h3>
+                <p data-i18n="wizard.existingConfig_question">Do you already have a Star Commander configuration to restore?</p>
                 
                 <div class="mode-selection">
                     <button class="mode-card" id="btn-cmd-import">
                         <span class="mode-icon">📥</span>
-                        <span class="mode-title">OUI</span>
-                        <span class="mode-desc">J'ai un fichier config.json</span>
+                        <span class="mode-title" data-i18n="wizard.yes">YES</span>
+                        <span class="mode-desc" data-i18n="wizard.yesConfig_desc">I have a config.json file</span>
                     </button>
                     <button class="mode-card" id="btn-cmd-new">
                         <span class="mode-icon">➕</span>
-                        <span class="mode-title">NON</span>
-                        <span class="mode-desc">Nouvelle configuration</span>
+                        <span class="mode-title" data-i18n="wizard.no">NO</span>
+                        <span class="mode-desc" data-i18n="wizard.newConfig_desc">New configuration</span>
                     </button>
                 </div>
                 
-                <button class="btn" onclick="wizardStep(0)">← Retour</button>
+                <button class="btn" onclick="wizardStep(0)" data-i18n="wizard.back">← Back</button>
             </div>
             
             <!-- Step 0b: Import for Commandant -->
             <div class="wizard-step" id="wizard-step-cmd-import" style="display: none;">
-                <h3>Importer la configuration</h3>
-                <p>Sélectionnez votre fichier <strong>starcommander-config.json</strong></p>
+                <h3 data-i18n="wizard.importConfiguration">Import Configuration</h3>
+                <p data-i18n="wizard.selectFile" data-i18n-html>Select your <strong>starcommander-config.json</strong> file</p>
                 
                 <div class="import-zone" id="import-zone-cmd">
                     <span class="import-icon">📁</span>
-                    <span class="import-text">Cliquez pour sélectionner le fichier</span>
+                    <span class="import-text" data-i18n="wizard.clickToSelect">Click to select file</span>
                     <input type="file" id="import-file-cmd" accept=".json" style="display: none;">
                 </div>
                 
                 <div id="import-preview-cmd" style="display: none;">
-                    <p class="wizard-note success">✅ Config chargée !</p>
+                    <p class="wizard-note success" data-i18n="wizard.configLoaded">✅ Config loaded!</p>
                     <div class="import-info">
-                        <p><strong>Channels trouvés :</strong></p>
+                        <p><strong data-i18n="wizard.channelsFound">Channels found:</strong></p>
                         <ul id="import-channels-list-cmd"></ul>
                     </div>
                 </div>
                 
-                <button class="btn" onclick="wizardStep('cmd-0')">← Retour</button>
-                <button class="btn btn-primary" id="btn-cmd-import-finish" onclick="wizardFinishCommandantImport()" disabled>Terminer ✓</button>
+                <button class="btn" onclick="wizardStep('cmd-0')" data-i18n="wizard.back">← Back</button>
+                <button class="btn btn-primary" id="btn-cmd-import-finish" onclick="wizardFinishCommandantImport()" disabled data-i18n="wizard.finish">Finish ✓</button>
             </div>
 
             <!-- Step 1: Create Bots -->
             <div class="wizard-step" id="wizard-step-cmd-1" style="display: none;">
-                <h3>Step 1: Créer les Bots Discord</h3>
-                <p>Vous devez créer <strong>4 bots Discord</strong> :</p>
+                <h3 data-i18n="wizard.step1_title">Step 1: Create Discord Bots</h3>
+                <p data-i18n="wizard.step1_intro" data-i18n-html>You need to create <strong>4 Discord bots</strong>:</p>
                 <ul>
-                    <li><strong>1 Emitter</strong> - écoute le channel commandants</li>
-                    <li><strong>3 Receivers</strong> - parlent dans les channels cibles</li>
+                    <li data-i18n="wizard.step1_emitter" data-i18n-html><strong>1 Emitter</strong> - listens to commanders channel</li>
+                    <li data-i18n="wizard.step1_receivers" data-i18n-html><strong>3 Receivers</strong> - speak in target channels</li>
                 </ul>
                 
                 <div class="wizard-instructions">
-                    <h4>📝 Pour chaque bot :</h4>
+                    <h4 data-i18n="wizard.step1_instructions">📝 For each bot:</h4>
                     <ol>
-                        <li>Allez sur <a href="#" onclick="openExternal('https://discord.com/developers/applications')">Discord Developer Portal</a></li>
-                        <li>Click <strong>"New Application"</strong> → Nommez-le</li>
-                        <li><strong>"Bot"</strong> tab → <strong>"Reset Token"</strong> → Copiez</li>
-                        <li>Activez <strong>Privileged Gateway Intents</strong> :
+                        <li data-i18n="wizard.step1_instr1">Go to Discord Developer Portal</li>
+                        <li data-i18n="wizard.step1_instr2" data-i18n-html>Click <strong>"New Application"</strong> → Name it</li>
+                        <li data-i18n="wizard.step1_instr3" data-i18n-html><strong>"Bot"</strong> tab → <strong>"Reset Token"</strong> → Copy</li>
+                        <li data-i18n="wizard.step1_instr4" data-i18n-html>Enable <strong>Privileged Gateway Intents</strong>:
                             <ul>
-                                <li>✅ Presence Intent</li>
-                                <li>✅ Server Members Intent <span class="required">(requis!)</span></li>
-                                <li>✅ Message Content Intent</li>
+                                <li data-i18n="wizard.step1_instr4_1">✅ Presence Intent</li>
+                                <li data-i18n="wizard.step1_instr4_2" data-i18n-html>✅ Server Members Intent <span class="required">(required!)</span></li>
+                                <li data-i18n="wizard.step1_instr4_3">✅ Message Content Intent</li>
                             </ul>
                         </li>
-                        <li><strong>"OAuth2" → "URL Generator"</strong></li>
-                        <li>Scopes: <strong>bot</strong> | Permissions: <strong>Connect, Speak</strong></li>
-                        <li>Invitez le bot sur votre serveur</li>
+                        <li data-i18n="wizard.step1_instr5" data-i18n-html><strong>"OAuth2" → "URL Generator"</strong></li>
+                        <li data-i18n="wizard.step1_instr6" data-i18n-html>Scopes: <strong>bot</strong> | Permissions: <strong>Connect, Speak</strong></li>
+                        <li data-i18n="wizard.step1_instr7">Invite the bot to your server</li>
                     </ol>
                 </div>
                 
-                <p class="wizard-note">⚠️ Répétez pour les 4 bots, puis cliquez Suivant</p>
-                <button class="btn" onclick="wizardStep('cmd-0')">← Retour</button>
-                <button class="btn btn-primary" onclick="wizardStep('cmd-2')">Suivant →</button>
+                <p class="wizard-note" data-i18n="wizard.step1_note">⚠️ Repeat for all 4 bots, then click Next</p>
+                <button class="btn" onclick="wizardStep('cmd-0')" data-i18n="wizard.back">← Back</button>
+                <button class="btn btn-primary" onclick="wizardStep('cmd-2')" data-i18n="wizard.next">Next →</button>
             </div>
             
             <!-- Step 2: Tokens -->
             <div class="wizard-step" id="wizard-step-cmd-2" style="display: none;">
-                <h3>Step 2: Tokens des Bots</h3>
+                <h3 data-i18n="wizard.step2_title">Step 2: Bot Tokens</h3>
                 <div class="form-group">
-                    <label>Emitter Token</label>
-                    <input type="password" id="wizard-token-emitter" placeholder="Collez le token...">
+                    <label data-i18n="wizard.emitterToken">Emitter Token</label>
+                    <input type="password" id="wizard-token-emitter" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
                 </div>
                 <div class="form-group">
-                    <label>Receiver 1 Token</label>
-                    <input type="password" id="wizard-token-receiver1" placeholder="Collez le token...">
+                    <label data-i18n="wizard.receiver1Token">Receiver 1 Token</label>
+                    <input type="password" id="wizard-token-receiver1" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
                 </div>
                 <div class="form-group">
-                    <label>Receiver 2 Token</label>
-                    <input type="password" id="wizard-token-receiver2" placeholder="Collez le token...">
+                    <label data-i18n="wizard.receiver2Token">Receiver 2 Token</label>
+                    <input type="password" id="wizard-token-receiver2" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
                 </div>
                 <div class="form-group">
-                    <label>Receiver 3 Token</label>
-                    <input type="password" id="wizard-token-receiver3" placeholder="Collez le token...">
+                    <label data-i18n="wizard.receiver3Token">Receiver 3 Token</label>
+                    <input type="password" id="wizard-token-receiver3" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
                 </div>
-                <p class="wizard-note">🔒 Les tokens sont stockés localement uniquement</p>
-                <button class="btn" onclick="wizardStep('cmd-1')">← Retour</button>
-                <button class="btn btn-primary" onclick="wizardValidateStep2()">Suivant →</button>
+                <p class="wizard-note" data-i18n="wizard.tokensLocal">🔒 Tokens are stored locally only</p>
+                <button class="btn" onclick="wizardStep('cmd-1')" data-i18n="wizard.back">← Back</button>
+                <button class="btn btn-primary" onclick="wizardValidateStep2()" data-i18n="wizard.next">Next →</button>
             </div>
             
             <!-- Step 3: Channels -->
             <div class="wizard-step" id="wizard-step-cmd-3" style="display: none;">
-                <h3>Step 3: Configurer les Channels Vocaux</h3>
-                <p class="wizard-note">💡 Clic droit sur un channel → "Copier l'identifiant"</p>
+                <h3 data-i18n="wizard.step3_title">Step 3: Configure Voice Channels</h3>
+                <p class="wizard-note" data-i18n="wizard.step3_note">💡 Right-click on a channel → "Copy ID"</p>
                 
                 <div class="form-group">
-                    <label>Channel Source (Commandants) - vocal</label>
-                    <input type="text" id="wizard-channel-source" placeholder="Channel ID...">
+                    <label data-i18n="wizard.sourceChannel">Source Channel (Commanders) - voice</label>
+                    <input type="text" id="wizard-channel-source" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
                 </div>
                 <hr>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Target 1 - Nom</label>
-                        <input type="text" id="wizard-target1-name" placeholder="ex: Artilleurs">
+                        <label data-i18n="wizard.target1_name">Target 1 - Name</label>
+                        <input type="text" id="wizard-target1-name" data-i18n-placeholder="wizard.exampleArtillery" placeholder="e.g. Artillery">
                     </div>
                     <div class="form-group">
-                        <label>Channel ID (vocal)</label>
-                        <input type="text" id="wizard-target1-id" placeholder="Channel ID...">
+                        <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
+                        <input type="text" id="wizard-target1-id" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Target 2 - Nom</label>
-                        <input type="text" id="wizard-target2-name" placeholder="ex: Ingénieurs">
+                        <label data-i18n="wizard.target2_name">Target 2 - Name</label>
+                        <input type="text" id="wizard-target2-name" data-i18n-placeholder="wizard.exampleEngineers" placeholder="e.g. Engineers">
                     </div>
                     <div class="form-group">
-                        <label>Channel ID (vocal)</label>
-                        <input type="text" id="wizard-target2-id" placeholder="Channel ID...">
+                        <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
+                        <input type="text" id="wizard-target2-id" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Target 3 - Nom</label>
-                        <input type="text" id="wizard-target3-name" placeholder="ex: Pilotes">
+                        <label data-i18n="wizard.target3_name">Target 3 - Name</label>
+                        <input type="text" id="wizard-target3-name" data-i18n-placeholder="wizard.examplePilots" placeholder="e.g. Pilots">
                     </div>
                     <div class="form-group">
-                        <label>Channel ID (vocal)</label>
-                        <input type="text" id="wizard-target3-id" placeholder="Channel ID...">
+                        <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
+                        <input type="text" id="wizard-target3-id" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
                     </div>
                 </div>
-                <button class="btn" onclick="wizardStep('cmd-2')">← Retour</button>
-                <button class="btn btn-primary" onclick="wizardValidateStep3()">Suivant →</button>
+                <button class="btn" onclick="wizardStep('cmd-2')" data-i18n="wizard.back">← Back</button>
+                <button class="btn btn-primary" onclick="wizardValidateStep3()" data-i18n="wizard.next">Next →</button>
             </div>
             
             <!-- Step 4: Whisper Relay -->
             <div class="wizard-step" id="wizard-step-cmd-4" style="display: none;">
-                <h3>Step 4: Configurer le Whisper Relay</h3>
-                <p>Le Whisper permet aux chefs de parler directement au commandant.</p>
+                <h3 data-i18n="wizard.step4_title">Step 4: Configure Whisper Relay</h3>
+                <p data-i18n="wizard.step4_intro">Whisper allows chiefs to speak directly to the commander.</p>
                 
                 <div class="wizard-instructions">
-                    <h4>📡 Créer le channel relay :</h4>
+                    <h4 data-i18n="wizard.step4_relay_title">📡 Create the relay channel:</h4>
                     <ol>
-                        <li>Créez un <strong>channel TEXTE privé</strong> (ex: "star-commander-relay")</li>
-                        <li>Dans les permissions du channel, <strong>ajoutez vos 4 bots</strong> :
+                        <li data-i18n="wizard.step4_relay_instr1" data-i18n-html>Create a <strong>private TEXT channel</strong> (e.g. "star-commander-relay")</li>
+                        <li data-i18n="wizard.step4_relay_instr2" data-i18n-html>In channel permissions, <strong>add your 4 bots</strong>:
                             <ul>
-                                <li>✅ Voir le salon</li>
-                                <li>✅ Lire l'historique</li>
-                                <li>✅ Envoyer des messages</li>
-                                <li>✅ Gérer les messages (pour supprimer les commandes)</li>
+                                <li data-i18n="wizard.step4_relay_perm1">✅ View Channel</li>
+                                <li data-i18n="wizard.step4_relay_perm2">✅ Read Message History</li>
+                                <li data-i18n="wizard.step4_relay_perm3">✅ Send Messages</li>
+                                <li data-i18n="wizard.step4_relay_perm4">✅ Manage Messages (to delete commands)</li>
                             </ul>
                         </li>
-                        <li>Clic droit sur le channel → <strong>"Copier l'identifiant"</strong></li>
+                        <li data-i18n="wizard.step4_relay_instr3" data-i18n-html>Right-click on the channel → <strong>"Copy ID"</strong></li>
                     </ol>
                 </div>
                 
                 <div class="form-group">
-                    <label>📡 Channel Relay ID (texte)</label>
-                    <input type="text" id="wizard-channel-relay" placeholder="Channel ID du channel texte...">
+                    <label data-i18n="wizard.relayChannelID">📡 Relay Channel ID (text)</label>
+                    <input type="text" id="wizard-channel-relay" data-i18n-placeholder="wizard.relayChannelPlaceholder" placeholder="Text channel ID...">
                 </div>
                 
                 <div class="wizard-instructions" style="margin-top: 15px;">
-                    <h4>🔗 Créer le Webhook :</h4>
+                    <h4 data-i18n="wizard.step4_webhook_title">🔗 Create the Webhook:</h4>
                     <ol>
-                        <li><strong>Paramètres du serveur</strong> (clic sur le nom du serveur)</li>
-                        <li>Onglet <strong>"Intégrations"</strong></li>
-                        <li>Click <strong>"Webhooks"</strong> → <strong>"Nouveau webhook"</strong></li>
-                        <li>Sélectionnez le <strong>channel relay</strong> créé précédemment</li>
-                        <li>Click <strong>"Copier l'URL du webhook"</strong></li>
+                        <li data-i18n="wizard.step4_webhook_instr1" data-i18n-html><strong>Server Settings</strong> (click on server name)</li>
+                        <li data-i18n="wizard.step4_webhook_instr2" data-i18n-html><strong>"Integrations"</strong> tab</li>
+                        <li data-i18n="wizard.step4_webhook_instr3" data-i18n-html>Click <strong>"Webhooks"</strong> → <strong>"New Webhook"</strong></li>
+                        <li data-i18n="wizard.step4_webhook_instr4" data-i18n-html>Select the <strong>relay channel</strong> created previously</li>
+                        <li data-i18n="wizard.step4_webhook_instr5" data-i18n-html>Click <strong>"Copy Webhook URL"</strong></li>
                     </ol>
                 </div>
                 
                 <div class="form-group">
-                    <label>🔗 Webhook URL</label>
+                    <label data-i18n="wizard.webhookURL">🔗 Webhook URL</label>
                     <input type="text" id="wizard-webhook-relay" placeholder="https://discord.com/api/webhooks/...">
                 </div>
                 
-                <p class="wizard-note">⚠️ Sans cette configuration, le Whisper ne fonctionnera pas !</p>
+                <p class="wizard-note" data-i18n="wizard.step4_note">⚠️ Without this configuration, Whisper won't work!</p>
                 
-                <button class="btn" onclick="wizardStep('cmd-3')">← Retour</button>
-                <button class="btn btn-primary" onclick="wizardValidateStep4()">Terminer ✓</button>
+                <button class="btn" onclick="wizardStep('cmd-3')" data-i18n="wizard.back">← Back</button>
+                <button class="btn btn-primary" onclick="wizardValidateStep4()" data-i18n="wizard.finish">Finish ✓</button>
             </div>
 
             <!-- CHIEF FLOW -->
             <!-- Step 1: Import Config -->
             <div class="wizard-step" id="wizard-step-chief-1" style="display: none;">
-                <h3>Step 1: Importer la config</h3>
-                <p>Demandez le fichier <strong>starcommander-config.json</strong> à votre commandant.</p>
+                <h3 data-i18n="wizard.chief_step1_title">Step 1: Import Configuration</h3>
+                <p data-i18n="wizard.chief_step1_intro" data-i18n-html>Ask your commander for the <strong>starcommander-config.json</strong> file.</p>
                 
                 <div class="import-zone" id="import-zone">
                     <span class="import-icon">📁</span>
-                    <span class="import-text">Cliquez pour sélectionner le fichier</span>
+                    <span class="import-text" data-i18n="wizard.clickToSelect">Click to select file</span>
                     <input type="file" id="import-file" accept=".json" style="display: none;">
                 </div>
                 
                 <div id="import-preview" style="display: none;">
-                    <p class="wizard-note success">✅ Config chargée !</p>
+                    <p class="wizard-note success" data-i18n="wizard.configLoaded">✅ Config loaded!</p>
                     <div class="import-info">
-                        <p><strong>Channels disponibles :</strong></p>
+                        <p><strong data-i18n="wizard.channelsAvailable">Available channels:</strong></p>
                         <ul id="import-channels-list"></ul>
                     </div>
                 </div>
                 
-                <button class="btn" onclick="wizardStep(0)">← Retour</button>
-                <button class="btn btn-primary" id="btn-chief-next" onclick="wizardStep('chief-2')" disabled>Suivant →</button>
+                <button class="btn" onclick="wizardStep(0)" data-i18n="wizard.back">← Back</button>
+                <button class="btn btn-primary" id="btn-chief-next" onclick="wizardStep('chief-2')" disabled data-i18n="wizard.next">Next →</button>
             </div>
             
             <!-- Step 2: Select Identity -->
             <div class="wizard-step" id="wizard-step-chief-2" style="display: none;">
-                <h3>Step 2: Identifiez-vous</h3>
-                <p>Sélectionnez votre rôle parmi les chefs configurés :</p>
+                <h3 data-i18n="wizard.chief_step2_title">Step 2: Identify Yourself</h3>
+                <p data-i18n="wizard.chief_step2_intro">Select your role among configured chiefs:</p>
                 
                 <div class="form-group">
-                    <label>Vous êtes...</label>
+                    <label data-i18n="wizard.youAre">You are...</label>
                     <select id="wizard-chief-select" class="chief-select">
-                        <option value="">-- Sélectionnez --</option>
+                        <option value="" data-i18n="wizard.selectOption">-- Select --</option>
                     </select>
                 </div>
                 
                 <div id="chief-info" style="display: none;">
-                    <p class="wizard-note">📢 Vous serez dans le channel <strong id="chief-channel-name"></strong></p>
-                    <p class="wizard-note">🎤 Utilisez Whisper pour parler au commandant</p>
+                    <p class="wizard-note"><span data-i18n="wizard.youWillBeIn">📢 You will be in channel</span> <strong id="chief-channel-name"></strong></p>
+                    <p class="wizard-note" data-i18n="wizard.useWhisper">🎤 Use Whisper to speak to the commander</p>
                 </div>
                 
-                <button class="btn" onclick="wizardStep('chief-1')">← Retour</button>
-                <button class="btn btn-primary" id="btn-chief-finish" onclick="wizardFinishChief()" disabled>Terminer ✓</button>
+                <button class="btn" onclick="wizardStep('chief-1')" data-i18n="wizard.back">← Back</button>
+                <button class="btn btn-primary" id="btn-chief-finish" onclick="wizardFinishChief()" disabled data-i18n="wizard.finish">Finish ✓</button>
             </div>
         </div>
     </div>
@@ -719,3 +719,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
