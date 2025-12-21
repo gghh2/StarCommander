@@ -833,6 +833,51 @@ class RelayManager {
     isBriefingMode() {
         return this.isBriefingActive;
     }
+    
+    // Get all guild members (for chiefs autocomplete)
+    async getGuildMembers() {
+        const client = EmitterBot.getClient();  // ✅ Utiliser EmitterBot directement
+        if (!client || !client.guilds) {
+            console.log('[RelayManager] No client or guilds available');
+            return [];
+        }
+        
+        try {
+            // Get all guilds the bot is in
+            const guilds = client.guilds.cache;
+            if (guilds.size === 0) {
+                console.log('[RelayManager] No guilds found');
+                return [];
+            }
+            
+            // Use the first guild (bot should only be in one server for Star Commander)
+            const guild = guilds.first();
+            console.log(`[RelayManager] Fetching members from guild: ${guild.name}`);
+            
+            // Fetch all members
+            await guild.members.fetch();
+            
+            // Map to simple format
+            const members = guild.members.cache.map(member => ({
+                id: member.id,
+                username: member.user.username,
+                displayName: member.displayName || member.user.username,
+                tag: member.user.tag,
+                bot: member.user.bot
+            }));
+            
+            console.log(`[RelayManager] Total members found: ${members.length}`);
+            
+            // Filter out bots and return
+            const nonBots = members.filter(m => !m.bot);
+            console.log(`[RelayManager] Non-bot members: ${nonBots.length}`);
+            
+            return nonBots;
+        } catch (error) {
+            console.error('[RelayManager] Error fetching guild members:', error);
+            return [];
+        }
+    }
 }
 
 module.exports = RelayManager;

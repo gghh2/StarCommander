@@ -57,5 +57,8 @@ contextBridge.exposeInMainWorld('api', {
     
     // Theme export/import
     exportTheme: (theme) => ipcRenderer.invoke('export-theme', theme),
-    importTheme: () => ipcRenderer.invoke('import-theme')
+    importTheme: () => ipcRenderer.invoke('import-theme'),
+    
+    // Discord members
+    getGuildMembers: () => ipcRenderer.invoke('get-guild-members')
 });

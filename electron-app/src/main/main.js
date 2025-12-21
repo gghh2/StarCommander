@@ -5,6 +5,7 @@
 
 const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, shell, screen } = require('electron');
 const path = require('path');
+const { uIOhook, UiohookKey } = require('uiohook-napi');
 
 // Detect dev mode and separate config paths
 const isDev = !app.isPackaged;
@@ -62,6 +63,8 @@ let tray = null;
 let relayManager = null;
 let isCleaningUp = false;
 let currentChannel = 'MUTE';
+let uiohookStarted = false;
+let registeredKeys = new Map(); // Map de keycode -> target
 
 // Cleanup relay before closing
 async function cleanupBeforeClose() {
@@ -233,34 +236,134 @@ function createTray() {
     }
 }
 
-// Register global keybinds
+// Key mapping for uiohook
+const KEY_MAP = {
+    // Numpad
+    'num0': UiohookKey.Numpad0,
+    'num1': UiohookKey.Numpad1,
+    'num2': UiohookKey.Numpad2,
+    'num3': UiohookKey.Numpad3,
+    'num4': UiohookKey.Numpad4,
+    'num5': UiohookKey.Numpad5,
+    'num6': UiohookKey.Numpad6,
+    'num7': UiohookKey.Numpad7,
+    'num8': UiohookKey.Numpad8,
+    'num9': UiohookKey.Numpad9,
+    'numadd': UiohookKey.NumpadAdd,
+    'numsub': UiohookKey.NumpadSubtract,
+    'nummult': UiohookKey.NumpadMultiply,
+    'numdiv': UiohookKey.NumpadDivide,
+    'numdec': UiohookKey.NumpadDecimal,
+    
+    // Function keys
+    'F1': UiohookKey.F1,
+    'F2': UiohookKey.F2,
+    'F3': UiohookKey.F3,
+    'F4': UiohookKey.F4,
+    'F5': UiohookKey.F5,
+    'F6': UiohookKey.F6,
+    'F7': UiohookKey.F7,
+    'F8': UiohookKey.F8,
+    'F9': UiohookKey.F9,
+    'F10': UiohookKey.F10,
+    'F11': UiohookKey.F11,
+    'F12': UiohookKey.F12,
+    
+    // Letters (uppercase for consistency)
+    'A': UiohookKey.A, 'B': UiohookKey.B, 'C': UiohookKey.C, 'D': UiohookKey.D,
+    'E': UiohookKey.E, 'F': UiohookKey.F, 'G': UiohookKey.G, 'H': UiohookKey.H,
+    'I': UiohookKey.I, 'J': UiohookKey.J, 'K': UiohookKey.K, 'L': UiohookKey.L,
+    'M': UiohookKey.M, 'N': UiohookKey.N, 'O': UiohookKey.O, 'P': UiohookKey.P,
+    'Q': UiohookKey.Q, 'R': UiohookKey.R, 'S': UiohookKey.S, 'T': UiohookKey.T,
+    'U': UiohookKey.U, 'V': UiohookKey.V, 'W': UiohookKey.W, 'X': UiohookKey.X,
+    'Y': UiohookKey.Y, 'Z': UiohookKey.Z,
+    
+    // Numbers (top row)
+    '0': UiohookKey.Digit0, '1': UiohookKey.Digit1, '2': UiohookKey.Digit2,
+    '3': UiohookKey.Digit3, '4': UiohookKey.Digit4, '5': UiohookKey.Digit5,
+    '6': UiohookKey.Digit6, '7': UiohookKey.Digit7, '8': UiohookKey.Digit8,
+    '9': UiohookKey.Digit9
+};
+
+// Register global keybinds using uiohook (works in fullscreen games!)
 function registerKeybinds() {
     const keybinds = store.get('keybinds');
     
-    globalShortcut.unregisterAll();
+    console.log('[Main] Registering keybinds with uiohook:', keybinds);
     
-    const registerKey = (key, target) => {
-        if (key) {
-            try {
-                globalShortcut.register(key, () => {
+    // Clear previous registrations
+    registeredKeys.clear();
+    
+    // Stop uiohook if already running
+    if (uiohookStarted) {
+        try {
+            uIOhook.stop();
+            uiohookStarted = false;
+        } catch (e) {
+            console.error('[Main] Error stopping uiohook:', e);
+        }
+    }
+    
+    // Map keybinds to targets
+    const keyTargets = {
+        [keybinds.all]: 'all',
+        [keybinds.mute]: 'mute',
+        [keybinds.channel1]: 'channel1',
+        [keybinds.channel2]: 'channel2',
+        [keybinds.channel3]: 'channel3',
+        [keybinds.whisper]: 'whisper',
+        [keybinds.briefing]: 'briefing'
+    };
+    
+    // Build registeredKeys map
+    for (const [keyStr, target] of Object.entries(keyTargets)) {
+        if (!keyStr) continue;
+        
+        const keycode = KEY_MAP[keyStr];
+        if (keycode !== undefined) {
+            registeredKeys.set(keycode, target);
+            console.log(`[Main] Mapped ${keyStr} (${keycode}) -> ${target}`);
+        } else {
+            console.warn(`[Main] Unknown key: ${keyStr}`);
+        }
+    }
+    
+    // Start uiohook listener
+    if (registeredKeys.size > 0) {
+        try {
+            uIOhook.on('keydown', (e) => {
+                const target = registeredKeys.get(e.keycode);
+                if (target) {
+                    console.log(`[Main] Keybind pressed: ${e.keycode} -> ${target}`);
                     // Check if window still exists before sending
                     if (mainWindow && !mainWindow.isDestroyed()) {
                         mainWindow.webContents.send('keybind-pressed', target);
                     }
-                });
-            } catch (e) {
-                console.log(`Failed to register keybind ${key}:`, e.message);
-            }
+                }
+            });
+            
+            uIOhook.start();
+            uiohookStarted = true;
+            console.log('[Main] uIOhook started successfully');
+        } catch (e) {
+            console.error('[Main] Failed to start uIOhook:', e);
         }
-    };
+    }
+}
+
+// Cleanup uiohook
+function cleanupKeybinds() {
+    if (uiohookStarted) {
+        try {
+            uIOhook.stop();
+            uiohookStarted = false;
+            console.log('[Main] uIOhook stopped');
+        } catch (e) {
+            console.error('[Main] Error stopping uIOhook:', e);
+        }
+    }
     
-    registerKey(keybinds.all, 'all');
-    registerKey(keybinds.mute, 'mute');
-    registerKey(keybinds.channel1, 'channel1');
-    registerKey(keybinds.channel2, 'channel2');
-    registerKey(keybinds.channel3, 'channel3');
-    registerKey(keybinds.whisper, 'whisper');
-    registerKey(keybinds.briefing, 'briefing');
+    registeredKeys.clear();
 }
 
 // Clear require cache for core modules (needed for restart)
@@ -566,6 +669,21 @@ function setupIPC() {
         return { success: false };
     });
     
+    // Get Discord guild members
+    ipcMain.handle('get-guild-members', async () => {
+        if (!relayManager) {
+            return { success: false, members: [], error: 'Relay not started' };
+        }
+        
+        try {
+            const members = await relayManager.getGuildMembers();
+            return { success: true, members };
+        } catch (error) {
+            console.error('[Main] Error getting guild members:', error);
+            return { success: false, members: [], error: error.message };
+        }
+    });
+    
     // Import theme
     ipcMain.handle('import-theme', async () => {
         const { dialog } = require('electron');
@@ -621,6 +739,6 @@ app.on('activate', () => {
 });
 
 app.on('will-quit', async () => {
-    globalShortcut.unregisterAll();
+    cleanupKeybinds(); // Use uiohook cleanup instead
     await cleanupBeforeClose();
 });

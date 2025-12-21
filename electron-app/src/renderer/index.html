@@ -229,16 +229,37 @@
             <div class="tab-pane" id="tab-chiefs">
                 <p class="help-text" data-i18n="chiefs.description" data-i18n-html>Define chiefs and their assigned channel. Each chief can whisper to commanders.</p>
                 <div id="chiefs-list"></div>
-                <div id="chiefs-add-section">
-                    <div class="form-row">
-                        <input type="text" id="new-chief-userid" data-i18n-placeholder="chiefs.placeholders.userId" placeholder="Discord User ID">
-                        <input type="text" id="new-chief-name" data-i18n-placeholder="chiefs.placeholders.name" placeholder="Name (e.g. Raven)">
-                        <select id="new-chief-channel">
-                            <option value="" data-i18n="chiefs.selectChannel">-- Channel --</option>
-                        </select>
-                        <button class="btn" id="btn-add-chief" data-i18n="chiefs.addChief">Add</button>
-                    </div>
-                </div>
+                <div id="chiefs-add-section" class="form-group">
+				    <h4 data-i18n="chiefs.addChief">Add Chief</h4>
+				    
+				    <!-- Load Members Button (only shown when relay running) -->
+				    <button class="btn" id="btn-load-members" style="margin-bottom: 10px; display: none;">
+				        <span id="load-members-text">🔄 Load Discord Members</span>
+				    </button>
+				    
+				    <div class="form-row">
+				        <!-- User autocomplete input with datalist -->
+				        <div style="flex: 2; position: relative;">
+				            <input 
+				                type="text" 
+				                id="new-chief-search" 
+				                list="members-list"
+				                data-i18n-placeholder="chiefs.placeholders.userId" 
+				                placeholder="Search member by name or paste ID"
+				                autocomplete="off">
+				            <datalist id="members-list"></datalist>
+				            <input type="hidden" id="new-chief-userid">
+				            <div id="selected-member" style="display: none; margin-top: 5px; font-size: 11px; color: var(--text-secondary);">
+				                Selected: <strong id="selected-member-name"></strong> (<code id="selected-member-id"></code>)
+				            </div>
+				        </div>
+				        <input type="text" id="new-chief-name" data-i18n-placeholder="chiefs.placeholders.name" placeholder="Name (auto-filled)">
+				        <select id="new-chief-channel">
+				            <option value="" data-i18n="chiefs.selectChannel">-- Channel --</option>
+				        </select>
+				        <button class="btn btn-primary" id="btn-add-chief" data-i18n="chiefs.addChief">Add</button>
+				    </div>
+				</div>
             </div>
 
             <!-- Keybinds Tab -->

@@ -1276,3 +1276,25 @@ hr {
   flex: 0 0 auto;
   margin-left: auto;   /* pousse les boutons à droite */
 }
+
+/* Member autocomplete */
+#new-chief-search {
+    width: 100%;
+}
+
+#selected-member {
+    padding: 4px 8px;
+    background: var(--bg-tertiary);
+    border-left: 3px solid var(--success);
+    border-radius: 4px;
+}
+
+#selected-member code {
+    font-family: 'Consolas', monospace;
+    color: var(--accent);
+    font-size: 10px;
+}
+
+#btn-load-members {
+    width: 100%;
+}

@@ -74,6 +74,8 @@ function applyModeUI() {
     if (appMode === 'commandant') {
         modeBadge.textContent = `👑 ${window.i18n.t('modes.commander')}`;
         modeBadge.classList.remove('chief');
+        // Show load members button if relay is running
+        updateLoadMembersButtonVisibility();
         if (exportSection) exportSection.style.display = 'flex';
         if (chiefsAddSection) chiefsAddSection.style.display = 'block';
         if (keybindsCommandant) keybindsCommandant.style.display = 'block';
@@ -328,6 +330,21 @@ function setupEventListeners() {
     document.getElementById('btn-save-bots').onclick = saveBots;
     document.getElementById('btn-save-keybinds').onclick = saveKeybinds;
     document.getElementById('btn-save-options').onclick = saveOptions;
+
+
+
+    // Load Discord members button
+    const btnLoadMembers = document.getElementById('btn-load-members');
+    if (btnLoadMembers) {
+        btnLoadMembers.onclick = loadDiscordMembers;
+    }
+    
+    // Chief search input with autocomplete
+    const chiefSearchInput = document.getElementById('new-chief-search');
+    if (chiefSearchInput) {
+        chiefSearchInput.oninput = handleChiefSearch;
+        chiefSearchInput.onchange = selectChiefFromAutocomplete;
+    }
     document.getElementById('btn-add-chief').onclick = addChief;
     
     // Reset keybinds button
@@ -530,6 +547,10 @@ function setRunningState(running) {
         document.getElementById('receiver2-status').classList.remove('connected');
         document.getElementById('receiver3-status').classList.remove('connected');
     }
+    
+    // ✅ AJOUTER CETTE LIGNE ICI (après le if/else)
+    // Update load members button visibility
+    updateLoadMembersButtonVisibility();
 }
 
 // Set target channel
@@ -1091,7 +1112,7 @@ async function updateChiefChannelOptions() {
 
 // Add chief
 async function addChief() {
-    const userId = document.getElementById('new-chief-userid').value;
+    const userId = document.getElementById('new-chief-userid').value; // ← Utilise l'input caché
     const name = document.getElementById('new-chief-name').value;
     const channelKey = document.getElementById('new-chief-channel').value;
     
@@ -1110,9 +1131,12 @@ async function addChief() {
     await window.api.config.set('chiefs', chiefs);
     renderChiefs(chiefs);
     
+    // Clear inputs
+    document.getElementById('new-chief-search').value = '';
     document.getElementById('new-chief-userid').value = '';
     document.getElementById('new-chief-name').value = '';
     document.getElementById('new-chief-channel').value = '';
+    document.getElementById('selected-member').style.display = 'none';
     
     addLog(`Chef "${name}" ajouté`, 'success');
 }
@@ -1475,6 +1499,145 @@ async function resetConfig() {
         await resetAndShowWizard();
     }
 }
+
+
+// Global members cache
+let discordMembers = [];
+
+// Load Discord members from relay
+async function loadDiscordMembers() {
+    const btnLoadMembers = document.getElementById('btn-load-members');
+    const loadText = document.getElementById('load-members-text');
+    
+    if (!btnLoadMembers || !loadText) return;
+    
+    // Show loading state
+    btnLoadMembers.disabled = true;
+    loadText.textContent = '⏳ Loading...';
+    
+    try {
+        const result = await window.api.getGuildMembers();
+        
+        if (result.success && result.members) {
+            discordMembers = result.members;
+            populateMembersList();
+            addLog(`✅ Loaded ${discordMembers.length} Discord members`, 'success');
+            loadText.textContent = `✅ ${discordMembers.length} members loaded`;
+        } else {
+            addLog(`❌ Failed to load members: ${result.error || 'Unknown error'}`, 'error');
+            loadText.textContent = '❌ Failed - Start relay first';
+        }
+    } catch (error) {
+        console.error('Error loading members:', error);
+        addLog(`❌ Error: ${error.message}`, 'error');
+        loadText.textContent = '❌ Error loading members';
+    }
+    
+    btnLoadMembers.disabled = false;
+    
+    // Reset text after 3 seconds
+    setTimeout(() => {
+        loadText.textContent = '🔄 Reload Discord Members';
+    }, 3000);
+}
+
+// Populate datalist with members
+function populateMembersList() {
+    const datalist = document.getElementById('members-list');
+    if (!datalist) return;
+    
+    datalist.innerHTML = '';
+    
+    discordMembers.forEach(member => {
+        const option = document.createElement('option');
+        option.value = `${member.displayName} (${member.tag})`;
+        option.dataset.userId = member.id;
+        option.dataset.displayName = member.displayName;
+        option.dataset.tag = member.tag;
+        datalist.appendChild(option);
+    });
+}
+
+// Handle search input
+function handleChiefSearch(e) {
+    const searchValue = e.target.value.trim();
+    const selectedMemberDiv = document.getElementById('selected-member');
+    const hiddenUserIdInput = document.getElementById('new-chief-userid');
+    
+    // Clear selection if user modifies the input
+    if (selectedMemberDiv) selectedMemberDiv.style.display = 'none';
+    if (hiddenUserIdInput) hiddenUserIdInput.value = '';
+}
+
+// Select member from autocomplete
+function selectChiefFromAutocomplete(e) {
+    const searchValue = e.target.value.trim();
+    const datalist = document.getElementById('members-list');
+    const selectedMemberDiv = document.getElementById('selected-member');
+    const selectedMemberName = document.getElementById('selected-member-name');
+    const selectedMemberId = document.getElementById('selected-member-id');
+    const hiddenUserIdInput = document.getElementById('new-chief-userid');
+    const nameInput = document.getElementById('new-chief-name');
+    
+    if (!datalist) return;
+    
+    // Check if user pasted a Discord ID directly (18-19 digits)
+    const discordIdRegex = /^\d{17,19}$/;
+    if (discordIdRegex.test(searchValue)) {
+        // User pasted an ID directly
+        if (hiddenUserIdInput) hiddenUserIdInput.value = searchValue;
+        if (selectedMemberDiv) {
+            selectedMemberDiv.style.display = 'block';
+            if (selectedMemberName) selectedMemberName.textContent = 'Direct ID';
+            if (selectedMemberId) selectedMemberId.textContent = searchValue;
+        }
+        return;
+    }
+    
+    // Find matching option in datalist
+    const options = datalist.querySelectorAll('option');
+    let matchedOption = null;
+    
+    for (const option of options) {
+        if (option.value === searchValue) {
+            matchedOption = option;
+            break;
+        }
+    }
+    
+    if (matchedOption) {
+        const userId = matchedOption.dataset.userId;
+        const displayName = matchedOption.dataset.displayName;
+        
+        // Fill hidden input with user ID
+        if (hiddenUserIdInput) hiddenUserIdInput.value = userId;
+        
+        // Auto-fill name if empty
+        if (nameInput && !nameInput.value) {
+            nameInput.value = displayName;
+        }
+        
+        // Show selected member info
+        if (selectedMemberDiv && selectedMemberName && selectedMemberId) {
+            selectedMemberDiv.style.display = 'block';
+            selectedMemberName.textContent = displayName;
+            selectedMemberId.textContent = userId;
+        }
+    }
+}
+
+// Update load members button visibility based on relay state
+function updateLoadMembersButtonVisibility() {
+    const btnLoadMembers = document.getElementById('btn-load-members');
+    if (btnLoadMembers && appMode === 'commandant') {
+        btnLoadMembers.style.display = isRunning ? 'block' : 'none';
+    }
+}
+
+
+
+
+
 
 // Initialize on load
 init();
