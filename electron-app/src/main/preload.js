@@ -53,5 +53,9 @@ contextBridge.exposeInMainWorld('api', {
     
     // Config export/import
     exportConfig: () => ipcRenderer.invoke('export-config'),
-    importConfig: () => ipcRenderer.invoke('import-config')
+    importConfig: () => ipcRenderer.invoke('import-config'),
+    
+    // Theme export/import
+    exportTheme: (theme) => ipcRenderer.invoke('export-theme', theme),
+    importTheme: () => ipcRenderer.invoke('import-theme')
 });

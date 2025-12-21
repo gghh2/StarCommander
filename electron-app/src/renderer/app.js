@@ -231,6 +231,74 @@ async function loadConfig() {
     if (intensityRow && radioEffectCheckbox) {
         intensityRow.style.display = radioEffectCheckbox.checked ? 'flex' : 'none';
     }
+    
+    // Load theme
+    loadTheme(config.theme);
+}
+
+// Load theme colors
+function loadTheme(theme) {
+    const defaultTheme = {
+        bgPrimary: '#0c1621',
+        bgSecondary: '#14202e',
+        bgTertiary: '#1a2c3f',
+        accent: '#11a9ed',
+        accentHover: '#2daee8',
+        textSecondary: '#8ea8c3',
+        success: '#00d97e',
+        warning: '#f7b731',
+        error: '#ee5a6f',
+        border: '#1a4d6b'
+    };
+    
+    const currentTheme = theme || defaultTheme;
+    
+    // Load into inputs
+    document.getElementById('theme-bg-primary').value = currentTheme.bgPrimary;
+    document.getElementById('theme-bg-secondary').value = currentTheme.bgSecondary;
+    document.getElementById('theme-bg-tertiary').value = currentTheme.bgTertiary;
+    document.getElementById('theme-accent').value = currentTheme.accent;
+    document.getElementById('theme-accent-hover').value = currentTheme.accentHover;
+    document.getElementById('theme-text-secondary').value = currentTheme.textSecondary;
+    document.getElementById('theme-success').value = currentTheme.success;
+    document.getElementById('theme-warning').value = currentTheme.warning;
+    document.getElementById('theme-error').value = currentTheme.error;
+    document.getElementById('theme-border').value = currentTheme.border;
+    
+    // Apply to CSS
+    applyTheme(currentTheme);
+}
+
+// Apply theme to CSS variables
+function applyTheme(theme) {
+    const root = document.documentElement;
+    root.style.setProperty('--bg-primary', theme.bgPrimary);
+    root.style.setProperty('--bg-secondary', theme.bgSecondary);
+    root.style.setProperty('--bg-tertiary', theme.bgTertiary);
+    root.style.setProperty('--accent', theme.accent);
+    root.style.setProperty('--accent-hover', theme.accentHover);
+    root.style.setProperty('--text-secondary', theme.textSecondary);
+    root.style.setProperty('--success', theme.success);
+    root.style.setProperty('--warning', theme.warning);
+    root.style.setProperty('--error', theme.error);
+    root.style.setProperty('--border', theme.border);
+}
+
+// Apply theme from color inputs (real-time preview)
+function applyThemeFromInputs() {
+    const theme = {
+        bgPrimary: document.getElementById('theme-bg-primary').value,
+        bgSecondary: document.getElementById('theme-bg-secondary').value,
+        bgTertiary: document.getElementById('theme-bg-tertiary').value,
+        accent: document.getElementById('theme-accent').value,
+        accentHover: document.getElementById('theme-accent-hover').value,
+        textSecondary: document.getElementById('theme-text-secondary').value,
+        success: document.getElementById('theme-success').value,
+        warning: document.getElementById('theme-warning').value,
+        error: document.getElementById('theme-error').value,
+        border: document.getElementById('theme-border').value
+    };
+    applyTheme(theme);
 }
 
 // Setup event listeners
@@ -357,6 +425,20 @@ function setupEventListeners() {
             }
         };
     }
+    
+    // Theme buttons
+    const btnResetTheme = document.getElementById('btn-reset-theme');
+    const btnExportTheme = document.getElementById('btn-export-theme');
+    const btnImportTheme = document.getElementById('btn-import-theme');
+    
+    if (btnResetTheme) btnResetTheme.onclick = resetTheme;
+    if (btnExportTheme) btnExportTheme.onclick = exportTheme;
+    if (btnImportTheme) btnImportTheme.onclick = importTheme;
+    
+    // Theme color inputs - apply in real-time
+    document.querySelectorAll('.theme-color-item input[type="color"]').forEach(input => {
+        input.addEventListener('input', applyThemeFromInputs);
+    });
 }
 
 // Toggle relay start/stop
@@ -811,6 +893,20 @@ async function saveOptions() {
     const radioEffectIntensity = parseInt(document.getElementById('option-radio-intensity').value);
     const clickSoundEnabled = document.getElementById('option-click-sound').checked;
     
+    // Get theme from inputs
+    const theme = {
+        bgPrimary: document.getElementById('theme-bg-primary').value,
+        bgSecondary: document.getElementById('theme-bg-secondary').value,
+        bgTertiary: document.getElementById('theme-bg-tertiary').value,
+        accent: document.getElementById('theme-accent').value,
+        accentHover: document.getElementById('theme-accent-hover').value,
+        textSecondary: document.getElementById('theme-text-secondary').value,
+        success: document.getElementById('theme-success').value,
+        warning: document.getElementById('theme-warning').value,
+        error: document.getElementById('theme-error').value,
+        border: document.getElementById('theme-border').value
+    };
+    
     const config = await window.api.config.get();
     const settings = config.settings || {};
     
@@ -820,6 +916,7 @@ async function saveOptions() {
     settings.clickSoundEnabled = clickSoundEnabled;
     
     await window.api.config.set('settings', settings);
+    await window.api.config.set('theme', theme);
     
     // Update relay audio settings in real-time (if running)
     await window.api.relay.updateAudioSettings({
@@ -829,6 +926,61 @@ async function saveOptions() {
     });
     
     addLog('Options saved', 'success');
+}
+
+// Reset theme to Star Citizen default
+function resetTheme() {
+    const defaultTheme = {
+        bgPrimary: '#0c1621',
+        bgSecondary: '#14202e',
+        bgTertiary: '#1a2c3f',
+        accent: '#11a9ed',
+        accentHover: '#2daee8',
+        textSecondary: '#8ea8c3',
+        success: '#00d97e',
+        warning: '#f7b731',
+        error: '#ee5a6f',
+        border: '#1a4d6b'
+    };
+    loadTheme(defaultTheme);
+    addLog('Thème Star Citizen restauré', 'success');
+}
+
+// Export theme
+async function exportTheme() {
+    const theme = {
+        bgPrimary: document.getElementById('theme-bg-primary').value,
+        bgSecondary: document.getElementById('theme-bg-secondary').value,
+        bgTertiary: document.getElementById('theme-bg-tertiary').value,
+        accent: document.getElementById('theme-accent').value,
+        accentHover: document.getElementById('theme-accent-hover').value,
+        textSecondary: document.getElementById('theme-text-secondary').value,
+        success: document.getElementById('theme-success').value,
+        warning: document.getElementById('theme-warning').value,
+        error: document.getElementById('theme-error').value,
+        border: document.getElementById('theme-border').value
+    };
+    
+    const result = await window.api.exportTheme(theme);
+    if (result.success) {
+        addLog(`Thème exporté: ${result.path}`, 'success');
+    } else {
+        addLog('Export annulé', 'info');
+    }
+}
+
+// Import theme
+async function importTheme() {
+    const result = await window.api.importTheme();
+    
+    if (result.success) {
+        loadTheme(result.theme);
+        addLog('Thème importé avec succès !', 'success');
+    } else if (result.error) {
+        addLog(`Erreur import: ${result.error}`, 'error');
+    } else {
+        addLog('Import annulé', 'info');
+    }
 }
 
 // Handle keybind capture

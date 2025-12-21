@@ -536,6 +536,57 @@ function setupIPC() {
         
         return { success: false };
     });
+    
+    // Export theme
+    ipcMain.handle('export-theme', async (event, theme) => {
+        const { dialog } = require('electron');
+        
+        const result = await dialog.showSaveDialog(mainWindow, {
+            title: 'Exporter le thème',
+            defaultPath: 'starcommander-theme.json',
+            filters: [{ name: 'JSON', extensions: ['json'] }]
+        });
+        
+        if (!result.canceled && result.filePath) {
+            const fs = require('fs');
+            fs.writeFileSync(result.filePath, JSON.stringify(theme, null, 2));
+            return { success: true, path: result.filePath };
+        }
+        
+        return { success: false };
+    });
+    
+    // Import theme
+    ipcMain.handle('import-theme', async () => {
+        const { dialog } = require('electron');
+        
+        const result = await dialog.showOpenDialog(mainWindow, {
+            title: 'Importer un thème',
+            filters: [{ name: 'JSON', extensions: ['json'] }],
+            properties: ['openFile']
+        });
+        
+        if (!result.canceled && result.filePaths.length > 0) {
+            const fs = require('fs');
+            try {
+                const theme = JSON.parse(fs.readFileSync(result.filePaths[0], 'utf-8'));
+                
+                // Validate theme structure
+                const requiredKeys = ['bgPrimary', 'bgSecondary', 'bgTertiary', 'accent', 'accentHover', 'textSecondary', 'success', 'warning', 'error', 'border'];
+                const valid = requiredKeys.every(key => theme.hasOwnProperty(key));
+                
+                if (!valid) {
+                    return { success: false, error: 'Format de thème invalide' };
+                }
+                
+                return { success: true, theme };
+            } catch (e) {
+                return { success: false, error: e.message };
+            }
+        }
+        
+        return { success: false };
+    });
 }
 
 // App ready

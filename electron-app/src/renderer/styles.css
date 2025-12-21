@@ -1159,3 +1159,36 @@ hr {
     min-width: 35px;
     text-align: right;
 }
+
+/* Theme Grid */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.theme-color-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.theme-color-item label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.theme-color-item input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.theme-color-item input[type="color"]:hover {
+    border-color: var(--accent);
+}

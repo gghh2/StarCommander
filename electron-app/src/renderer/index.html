@@ -351,7 +351,59 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" id="btn-save-options">Save Options</button>
+                <h4>🎨 Thème personnalisé</h4>
+                <p class="help-text">Personnalisez les couleurs de l'interface. Le thème par défaut est Star Citizen.</p>
+                
+                <div class="theme-grid">
+                    <div class="theme-color-item">
+                        <label>Fond principal</label>
+                        <input type="color" id="theme-bg-primary" value="#0c1621">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Fond secondaire</label>
+                        <input type="color" id="theme-bg-secondary" value="#14202e">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Fond tertiaire</label>
+                        <input type="color" id="theme-bg-tertiary" value="#1a2c3f">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Accent principal</label>
+                        <input type="color" id="theme-accent" value="#11a9ed">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Accent hover</label>
+                        <input type="color" id="theme-accent-hover" value="#2daee8">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Texte secondaire</label>
+                        <input type="color" id="theme-text-secondary" value="#8ea8c3">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Succès</label>
+                        <input type="color" id="theme-success" value="#00d97e">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Avertissement</label>
+                        <input type="color" id="theme-warning" value="#f7b731">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Erreur</label>
+                        <input type="color" id="theme-error" value="#ee5a6f">
+                    </div>
+                    <div class="theme-color-item">
+                        <label>Bordures</label>
+                        <input type="color" id="theme-border" value="#1a4d6b">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button class="btn" id="btn-reset-theme">🔄 Reset Star Citizen</button>
+                    <button class="btn" id="btn-export-theme">📤 Exporter thème</button>
+                    <button class="btn" id="btn-import-theme">📥 Importer thème</button>
+                </div>
+                
+                <button class="btn btn-primary" id="btn-save-options" style="margin-top: 15px;">Save Options</button>
             </div>
         </div>
     </div>
