@@ -129,3 +129,53 @@ class BotController(Controller):
         self.session.commit()
         log.info(f"Bot deleted: {bot}")
         return True
+
+    def start_bot(self, bot_id: UUID) -> bool:
+        """Start the bot's operation
+
+        Args:
+            bot_id (UUID): The ID of the bot to start
+        Returns:
+            bool: True if the bot was started successfully, False otherwise
+        """
+        from bots.runner import start_bot, stop_bot
+        from bots.registry import bot_registry
+        from shared.crypto import decrypt_token
+
+        bot = self.get_bot_by_id(bot_id)
+        if not bot:
+            log.error(f"Cannot start bot: No bot found with ID {bot_id}")
+            return False
+
+        # Placeholder for actual start logic
+        token = decrypt_token(bot.token_encrypted)
+        process = start_bot(str(bot.id), token)
+        bot_registry.register(str(bot.id), process)
+        log.info(f"Bot started: {bot}")
+        return True
+
+    def stop_bot(self, bot_id: UUID) -> bool:
+        """Stop the bot's operation
+
+        Args:
+            bot_id (UUID): The ID of the bot to stop
+        Returns:
+            bool: True if the bot was stopped successfully, False otherwise
+        """
+        from bots.runner import stop_bot
+        from bots.registry import bot_registry
+
+        bot = self.get_bot_by_id(bot_id)
+        if not bot:
+            log.error(f"Cannot stop bot: No bot found with ID {bot_id}")
+            return False
+
+        process = bot_registry.get(str(bot.id))
+        if process and process.is_alive():
+            stop_bot(process)
+            bot_registry.unregister(str(bot.id))
+            log.info(f"Bot stopped: {bot}")
+            return True
+        else:
+            log.warning(f"Bot process not running for ID: {bot_id}")
+            return False

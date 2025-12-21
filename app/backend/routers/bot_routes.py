@@ -19,6 +19,12 @@ bot_crud_router = APIRouter(
 )
 """Bot CRUD API Router"""
 
+bot_operations_router = APIRouter(
+    prefix="/bots/operations",
+    tags=["Bots Operations"],
+)
+"""Bot Operations API Router"""
+
 # --------------------------------------------------------------------------- #
 # Common docs components
 # --------------------------------------------------------------------------- #
@@ -227,4 +233,69 @@ def delete_bot_endpoint(bot_id: str, db=Depends(get_db)):
         return Response(status_code=204)
     else:
         log.warning(f"Bot with ID {bot_id} not found for deletion.")
+        return JSONResponse(status_code=404, content={"error": "Bot not found."})
+
+
+# --------------------------------------------------------------------------- #
+# Bot Operations Endpoints
+# --------------------------------------------------------------------------- #
+
+
+@bot_operations_router.post(
+    "/{bot_id}/start",
+    summary="Start Bot",
+    description="Start the operation of a bot.",
+    response_description="Bot start status message",
+    responses={
+        200: {
+            "description": "Bot started successfully.",
+        },
+        404: {
+            "description": "Bot not found.",
+        },
+    },
+)
+def start_bot_endpoint(bot_id: str, db=Depends(get_db)):
+    """Start the operation of a bot."""
+
+    log.debug(f"Start Bot endpoint called with bot_id: {bot_id}")
+    controller = BotController(db)
+    bot_uuid, error = parse_bot_id(bot_id)
+    if error:
+        return error
+    success = controller.start_bot(bot_uuid)
+    if success:
+        return {"message": "Bot started successfully."}
+    else:
+        log.warning(f"Bot with ID {bot_id} not found for starting.")
+        return JSONResponse(status_code=404, content={"error": "Bot not found."})
+
+
+@bot_operations_router.post(
+    "/{bot_id}/stop",
+    summary="Stop Bot",
+    description="Stop the operation of a bot.",
+    response_description="Bot stop status message",
+    responses={
+        200: {
+            "description": "Bot stopped successfully.",
+        },
+        404: {
+            "description": "Bot not found.",
+        },
+    },
+)
+def stop_bot_endpoint(bot_id: str, db=Depends(get_db)):
+    """Stop the operation of a bot."""
+
+    log.debug(f"Stop Bot endpoint called with bot_id: {bot_id}")
+    controller = BotController(db)
+    bot_uuid, error = parse_bot_id(bot_id)
+    if error:
+        return error
+    success = controller.stop_bot(bot_uuid)
+    if success:
+        return {"message": "Bot stopped successfully."}
+    else:
+        log.warning(f"Bot with ID {bot_id} not found for stopping.")
         return JSONResponse(status_code=404, content={"error": "Bot not found."})
