@@ -102,6 +102,15 @@ function createWindow() {
 
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
+    // ✅ AJOUTER CES LIGNES
+    // Ouvrir DevTools avec F12 ou Ctrl+Shift+I
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+        if (input.key === 'F12' || 
+            (input.control && input.shift && input.key === 'I')) {
+            mainWindow.webContents.toggleDevTools();
+        }
+    });
+
     mainWindow.once('ready-to-show', () => {
         if (!store.get('settings.startMinimized')) {
             mainWindow.show();

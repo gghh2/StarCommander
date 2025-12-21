@@ -137,6 +137,7 @@ body {
 
 .status-actions {
     display: flex;
+    align-items: center;
     gap: 10px;
 }
 
@@ -688,10 +689,15 @@ hr {
 
 /* Mode Title (large display) */
 .mode-title {
-    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 22px;
     font-weight: 600;
     color: var(--accent);
     text-shadow: 0 0 10px rgba(17, 169, 237, 0.6);
+    padding: 6px 12px;
+    border-radius: 6px;
 }
 
 .mode-title.chief {
@@ -727,12 +733,6 @@ hr {
 
 .mode-icon {
     font-size: 40px;
-}
-
-.mode-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
 }
 
 .mode-desc {
@@ -1032,6 +1032,7 @@ hr {
     border-radius: 8px;
     padding: 5px;
     margin-bottom: 15px;
+    margin-top: 15px;
 }
 
 .option-item {
@@ -1250,4 +1251,28 @@ hr {
 @keyframes steam {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-2px); }
+}
+
+/* Export section layout: H4 sur une ligne, puis texte + boutons sur la ligne suivante */
+#export-section {
+  display: flex;       /* (ton inline le met déjà, mais on garde) */
+  flex-wrap: wrap;     /* autorise le retour à la ligne */
+  align-items: center;
+  gap: 10px;           /* espace entre éléments */
+}
+
+#export-section > h4 {
+  flex: 0 0 100%;      /* force le titre à occuper toute la ligne */
+  margin: 0;           /* optionnel, propre */
+}
+
+#export-section > p.help-text {
+  flex: 1 1 320px;     /* prend la place dispo, peut se réduire */
+  min-width: 0;        /* important pour que le texte puisse wrap */
+  margin: 0;           /* sinon ton .help-text met margin-bottom:12px */
+}
+
+#export-section > div {
+  flex: 0 0 auto;
+  margin-left: auto;   /* pousse les boutons à droite */
 }
