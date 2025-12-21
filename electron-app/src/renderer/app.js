@@ -652,6 +652,12 @@ async function startBriefing() {
     
     isBriefing = true;
     
+    // ✅ DÉSACTIVER TOUS LES CHANNEL BUTTONS
+    channelButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Activer briefing
     const btnBriefing = document.getElementById('btn-briefing');
     if (btnBriefing) btnBriefing.classList.add('active');
     
@@ -676,6 +682,11 @@ async function endBriefing() {
     
     const btnBriefing = document.getElementById('btn-briefing');
     if (btnBriefing) btnBriefing.classList.remove('active');
+    
+    // ✅ RÉACTIVER MUTE PAR DÉFAUT
+    channelButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.target === 'mute');
+    });
     
     // Update overlay
     window.api.relay.setTarget('mute');
