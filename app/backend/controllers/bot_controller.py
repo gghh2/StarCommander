@@ -138,7 +138,7 @@ class BotController(Controller):
         Returns:
             bool: True if the bot was started successfully, False otherwise
         """
-        from bots.runner import start_bot, stop_bot
+        from bots.runner import start_bot
         from bots.registry import bot_registry
         from shared.crypto import decrypt_token
 
