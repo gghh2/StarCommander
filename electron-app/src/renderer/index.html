@@ -29,8 +29,7 @@
                 <span class="status-text">Stopped</span>
             </div>
             <div class="status-actions">
-                <span class="mode-badge" id="mode-badge">👑 Commandant</span>
-                <button class="btn btn-overlay" id="btn-overlay" title="Toggle Overlay">🖥️</button>
+                <span class="mode-title" id="mode-badge">👑 Commandant</span>
                 <button class="btn btn-primary" id="btn-start">▶ Start</button>
             </div>
         </div>
@@ -61,15 +60,15 @@
                         <span class="channel-name" id="channel3-name">Channel 3</span>
                         <span class="channel-key">4</span>
                     </button>
+                    <!-- Briefing button in grid -->
+                    <button class="channel-btn btn-briefing-grid" id="btn-briefing">
+                        <span class="channel-name">📢 Briefing</span>
+                        <span class="channel-key">5</span>
+                    </button>
                 </div>
                 <!-- Whisper button for Chiefs -->
                 <button class="btn btn-whisper" id="btn-whisper" style="display: none;">
                     🎙️ Whisper
-                </button>
-                
-                <!-- Briefing button for Commandants -->
-                <button class="btn btn-briefing" id="btn-briefing">
-                    📢 Briefing
                 </button>
             </div>
 
@@ -257,7 +256,8 @@
 
             <!-- Keybinds Tab -->
             <div class="tab-pane" id="tab-keybinds">
-                <p class="help-text">Click on a field and press the key you want to assign.</p>
+                <p class="help-text">Cliquez sur un champ et appuyez sur la touche souhaitée.<br>
+                💡 Combinaisons possibles : <strong>Ctrl+2</strong>, <strong>Alt+F1</strong>, <strong>Shift+num0</strong>, etc.</p>
                 <div id="keybinds-commandant">
                     <div class="form-group">
                         <label>All Channels</label>
@@ -268,15 +268,15 @@
                         <input type="text" id="keybind-mute" class="keybind-input" readonly placeholder="Press a key...">
                     </div>
                     <div class="form-group">
-                        <label>Channel 1</label>
+                        <label id="keybind-channel1-label">Channel 1</label>
                         <input type="text" id="keybind-channel1" class="keybind-input" readonly placeholder="Press a key...">
                     </div>
                     <div class="form-group">
-                        <label>Channel 2</label>
+                        <label id="keybind-channel2-label">Channel 2</label>
                         <input type="text" id="keybind-channel2" class="keybind-input" readonly placeholder="Press a key...">
                     </div>
                     <div class="form-group">
-                        <label>Channel 3</label>
+                        <label id="keybind-channel3-label">Channel 3</label>
                         <input type="text" id="keybind-channel3" class="keybind-input" readonly placeholder="Press a key...">
                     </div>
                     <div class="form-group">
@@ -290,11 +290,29 @@
                         <input type="text" id="keybind-whisper" class="keybind-input" readonly placeholder="Press a key...">
                     </div>
                 </div>
-                <button class="btn btn-primary" id="btn-save-keybinds">Save Keybinds</button>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-primary" id="btn-save-keybinds">Save Keybinds</button>
+                    <button class="btn" id="btn-reset-keybinds">🔄 Reset par défaut</button>
+                </div>
             </div>
 
             <!-- Options Tab -->
             <div class="tab-pane" id="tab-options">
+                <h4>🖥️ Affichage</h4>
+                
+                <div class="option-group">
+                    <div class="option-item">
+                        <div class="option-info">
+                            <span class="option-label">📌 Overlay (affichage du channel actif)</span>
+                            <span class="option-desc">Affiche une petite fenêtre toujours visible avec le channel sélectionné</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="option-overlay">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
                 <h4>🔊 Effets Audio</h4>
                 <p class="help-text">Ces effets s'appliquent uniquement aux voix relayées entre channels.</p>
                 

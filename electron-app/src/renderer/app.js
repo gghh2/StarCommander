@@ -36,7 +36,9 @@ async function init() {
     
     // Load overlay status
     overlayEnabled = await window.api.overlay.getStatus();
-    updateOverlayButton();
+    // Sync options checkbox
+    const overlayCheckbox = document.getElementById('option-overlay');
+    if (overlayCheckbox) overlayCheckbox.checked = overlayEnabled;
     
     // Setup event listeners
     setupEventListeners();
@@ -73,7 +75,7 @@ function applyModeUI() {
         if (keybindsCommandant) keybindsCommandant.style.display = 'block';
         if (keybindsChief) keybindsChief.style.display = 'none';
         if (btnWhisper) btnWhisper.style.display = 'none';
-        if (btnBriefing) btnBriefing.style.display = 'block';
+        if (btnBriefing) btnBriefing.style.display = 'flex'; // Show in grid
         if (tabBots) tabBots.style.display = '';
         if (tabChiefs) tabChiefs.style.display = '';
         if (channelGrid) channelGrid.style.display = 'grid';
@@ -88,7 +90,7 @@ function applyModeUI() {
         if (keybindsCommandant) keybindsCommandant.style.display = 'none';
         if (keybindsChief) keybindsChief.style.display = 'block';
         if (btnWhisper) btnWhisper.style.display = 'block';
-        if (btnBriefing) btnBriefing.style.display = 'none';
+        if (btnBriefing) btnBriefing.style.display = 'none'; // Hide in grid
         if (tabBots) tabBots.style.display = 'none';
         if (tabChiefs) tabChiefs.style.display = 'none';
         // Hide channel selector and start button for chiefs
@@ -108,7 +110,6 @@ function applyModeUI() {
         window.api.overlay.toggle(true);
         window.api.relay.setTarget('mute');
         overlayEnabled = true;
-        updateOverlayButton();
     }
 }
 
@@ -195,13 +196,27 @@ async function loadConfig() {
     const briefingInput = document.getElementById('keybind-briefing');
     if (briefingInput) briefingInput.value = keybinds.briefing || '';
     
+    // Update channel button keybind displays
+    updateChannelButtonKeybinds(keybinds);
+    
+    // Update keybind labels with channel names
+    const keybindNames = config.tokens?.names || {};
+    const label1 = document.getElementById('keybind-channel1-label');
+    const label2 = document.getElementById('keybind-channel2-label');
+    const label3 = document.getElementById('keybind-channel3-label');
+    if (label1) label1.textContent = keybindNames.receiver1 || 'Channel 1';
+    if (label2) label2.textContent = keybindNames.receiver2 || 'Channel 2';
+    if (label3) label3.textContent = keybindNames.receiver3 || 'Channel 3';
+    
     // Options
     const settings = config.settings || {};
     const radioEffectCheckbox = document.getElementById('option-radio-effect');
     const radioIntensitySlider = document.getElementById('option-radio-intensity');
     const radioIntensityValue = document.getElementById('radio-intensity-value');
     const clickSoundCheckbox = document.getElementById('option-click-sound');
+    const overlayCheckbox = document.getElementById('option-overlay');
     
+    if (overlayCheckbox) overlayCheckbox.checked = settings.overlayEnabled !== false;
     if (radioEffectCheckbox) radioEffectCheckbox.checked = settings.radioEffectEnabled !== false;
     if (clickSoundCheckbox) clickSoundCheckbox.checked = settings.clickSoundEnabled !== false;
     
@@ -227,9 +242,6 @@ function setupEventListeners() {
     // Start/Stop button
     btnStart.onclick = toggleRelay;
     
-    // Overlay toggle
-    document.getElementById('btn-overlay').onclick = toggleOverlay;
-    
     // Channel buttons
     channelButtons.forEach(btn => {
         btn.onclick = () => setTarget(btn.dataset.target);
@@ -245,6 +257,19 @@ function setupEventListeners() {
     document.getElementById('btn-save-keybinds').onclick = saveKeybinds;
     document.getElementById('btn-save-options').onclick = saveOptions;
     document.getElementById('btn-add-chief').onclick = addChief;
+    
+    // Reset keybinds button
+    const btnResetKeybinds = document.getElementById('btn-reset-keybinds');
+    if (btnResetKeybinds) btnResetKeybinds.onclick = resetKeybinds;
+    
+    // Overlay toggle in options
+    const overlayOptionCheckbox = document.getElementById('option-overlay');
+    if (overlayOptionCheckbox) {
+        overlayOptionCheckbox.onchange = async () => {
+            overlayEnabled = overlayOptionCheckbox.checked;
+            await window.api.overlay.toggle(overlayEnabled);
+        };
+    }
     
     // Export config
     const btnExport = document.getElementById('btn-export-config');
@@ -578,7 +603,9 @@ function handleRelayEvent({ event, data }) {
             break;
         case 'overlay-toggled':
             overlayEnabled = data.enabled;
-            updateOverlayButton();
+            // Sync options checkbox
+            const overlayChk = document.getElementById('option-overlay');
+            if (overlayChk) overlayChk.checked = overlayEnabled;
             break;
         case 'whisper-on':
             addLog(`🎤 [${data.user}] Whisper actif`, 'warning');
@@ -642,18 +669,23 @@ function switchTab(tabId) {
     });
 }
 
-// Toggle overlay
-async function toggleOverlay() {
-    overlayEnabled = !overlayEnabled;
-    await window.api.overlay.toggle(overlayEnabled);
-    updateOverlayButton();
-    addLog(`Overlay ${overlayEnabled ? 'enabled' : 'disabled'}`, 'info');
-}
-
-// Update overlay button state
-function updateOverlayButton() {
-    const btn = document.getElementById('btn-overlay');
-    btn.classList.toggle('active', overlayEnabled);
+// Update channel button keybind display
+function updateChannelButtonKeybinds(keybinds) {
+    const keyMap = {
+        'mute': document.querySelector('[data-target="mute"] .channel-key'),
+        'all': document.querySelector('[data-target="all"] .channel-key'),
+        'channel1': document.querySelector('[data-target="channel1"] .channel-key'),
+        'channel2': document.querySelector('[data-target="channel2"] .channel-key'),
+        'channel3': document.querySelector('[data-target="channel3"] .channel-key'),
+        'briefing': document.querySelector('#btn-briefing .channel-key')
+    };
+    
+    if (keyMap.mute && keybinds.mute) keyMap.mute.textContent = keybinds.mute;
+    if (keyMap.all && keybinds.all) keyMap.all.textContent = keybinds.all;
+    if (keyMap.channel1 && keybinds.channel1) keyMap.channel1.textContent = keybinds.channel1;
+    if (keyMap.channel2 && keybinds.channel2) keyMap.channel2.textContent = keybinds.channel2;
+    if (keyMap.channel3 && keybinds.channel3) keyMap.channel3.textContent = keybinds.channel3;
+    if (keyMap.briefing && keybinds.briefing) keyMap.briefing.textContent = keybinds.briefing;
 }
 
 // Save all bots config
@@ -731,11 +763,50 @@ async function saveKeybinds() {
     }
     
     await window.api.config.set('keybinds', keybinds);
+    
+    // Update button displays
+    updateChannelButtonKeybinds(keybinds);
+    
     addLog('Keybinds saved', 'success');
+}
+
+// Reset keybinds to default
+async function resetKeybinds() {
+    const defaultKeybinds = {
+        all: 'num0',
+        mute: 'num1',
+        channel1: 'num2',
+        channel2: 'num3',
+        channel3: 'num4',
+        whisper: 'num9',
+        briefing: 'num5'
+    };
+    
+    // Update UI
+    document.getElementById('keybind-all').value = defaultKeybinds.all;
+    document.getElementById('keybind-mute').value = defaultKeybinds.mute;
+    document.getElementById('keybind-channel1').value = defaultKeybinds.channel1;
+    document.getElementById('keybind-channel2').value = defaultKeybinds.channel2;
+    document.getElementById('keybind-channel3').value = defaultKeybinds.channel3;
+    
+    const whisperInput = document.getElementById('keybind-whisper');
+    if (whisperInput) whisperInput.value = defaultKeybinds.whisper;
+    
+    const briefingInput = document.getElementById('keybind-briefing');
+    if (briefingInput) briefingInput.value = defaultKeybinds.briefing;
+    
+    // Save to config
+    await window.api.config.set('keybinds', defaultKeybinds);
+    
+    // Update button displays
+    updateChannelButtonKeybinds(defaultKeybinds);
+    
+    addLog('Keybinds reset to default', 'success');
 }
 
 // Save options
 async function saveOptions() {
+    const overlayEnabled = document.getElementById('option-overlay').checked;
     const radioEffectEnabled = document.getElementById('option-radio-effect').checked;
     const radioEffectIntensity = parseInt(document.getElementById('option-radio-intensity').value);
     const clickSoundEnabled = document.getElementById('option-click-sound').checked;
@@ -743,13 +814,14 @@ async function saveOptions() {
     const config = await window.api.config.get();
     const settings = config.settings || {};
     
+    settings.overlayEnabled = overlayEnabled;
     settings.radioEffectEnabled = radioEffectEnabled;
     settings.radioEffectIntensity = radioEffectIntensity;
     settings.clickSoundEnabled = clickSoundEnabled;
     
     await window.api.config.set('settings', settings);
     
-    // Update relay in real-time (if running)
+    // Update relay audio settings in real-time (if running)
     await window.api.relay.updateAudioSettings({
         radioEffectEnabled,
         radioEffectIntensity,
@@ -1214,6 +1286,19 @@ async function resetConfig() {
 
 // Initialize on load
 init();
+
+// Sync logs section height with channel section
+function syncLogsHeight() {
+    const channelSection = document.querySelector('.channel-section');
+    const logsSection = document.querySelector('.logs-section');
+    if (channelSection && logsSection) {
+        logsSection.style.maxHeight = channelSection.offsetHeight + 'px';
+    }
+}
+
+// Call on load and resize
+window.addEventListener('load', () => setTimeout(syncLogsHeight, 100));
+window.addEventListener('resize', syncLogsHeight);
 
 // Open external URL
 function openExternal(url) {

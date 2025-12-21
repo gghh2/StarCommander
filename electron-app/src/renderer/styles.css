@@ -206,10 +206,10 @@ body {
 
 /* Main Panel - 2 columns 50/50 */
 .main-panel {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
     margin-bottom: 15px;
-    flex-shrink: 0;
 }
 
 /* Channel Section - 50% width */
@@ -217,8 +217,7 @@ body {
     background: var(--bg-secondary);
     padding: 15px;
     border-radius: 10px;
-    flex: 1;
-    min-width: 0;
+    height: fit-content;
 }
 
 .channel-section h3 {
@@ -296,16 +295,17 @@ body {
     background: var(--bg-secondary);
     padding: 15px;
     border-radius: 10px;
-    flex: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .logs-section h3 {
     margin-bottom: 10px;
     font-weight: 500;
     font-size: 13px;
+    flex-shrink: 0;
 }
 
 .logs-container {
@@ -313,8 +313,7 @@ body {
     border-radius: 6px;
     padding: 10px;
     flex: 1;
-    min-height: 100px;
-    max-height: 160px;
+    min-height: 0;
     overflow-y: auto;
     font-family: 'Consolas', monospace;
     font-size: 11px;
@@ -682,6 +681,17 @@ hr {
     background: var(--accent);
 }
 
+/* Mode Title (large display) */
+.mode-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.mode-title.chief {
+    color: var(--accent);
+}
+
 /* Mode Selection (Wizard Step 0) */
 .mode-selection {
     display: flex;
@@ -863,7 +873,24 @@ hr {
     color: #000;
 }
 
-/* Briefing Button */
+/* Briefing Button in Grid */
+.btn-briefing-grid {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border);
+}
+
+.btn-briefing-grid:hover {
+    border-color: #3b82f6;
+}
+
+.btn-briefing-grid.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+    animation: briefing-pulse 1.5s infinite;
+}
+
+/* Briefing Button (old - keep for compatibility) */
 .btn-briefing {
     width: 100%;
     margin-top: 12px;

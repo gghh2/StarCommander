@@ -33,8 +33,12 @@ class RelayManager {
         this.radioEffectIntensity = config.settings?.radioEffectIntensity ?? 50;
         this.clickSoundEnabled = config.settings?.clickSoundEnabled !== false;
         
-        // Sound file paths
-        this.soundsPath = path.join(__dirname, '../../assets/sounds');
+        // Sound file paths (different in dev vs packaged)
+        // Try packaged path first, fallback to dev path
+        const packagedPath = path.join(process.resourcesPath || '', 'assets/sounds');
+        const devPath = path.join(__dirname, '../../assets/sounds');
+        this.soundsPath = fs.existsSync(packagedPath) ? packagedPath : devPath;
+        
         this.clickStartPath = path.join(this.soundsPath, 'click_start.mp3');
         this.clickEndPath = path.join(this.soundsPath, 'click_end.mp3');
     }
