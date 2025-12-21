@@ -1,0 +1,12 @@
+{
+  "app": {"title": "Star Commander", "version": "V4.0"},
+  "status": {"stopped": "متوقف", "running": "قيد التشغيل", "ready": "جاهز", "connecting": "جاري الاتصال...", "stopping": "جاري الإيقاف..."},
+  "modes": {"commander": "القائد", "chief": "الرئيس"},
+  "buttons": {"start": "ابدأ", "stop": "توقف", "save": "حفظ", "cancel": "إلغاء", "close": "إغلاق", "export": "تصدير", "import": "استيراد", "reset": "إعادة تعيين", "add": "إضافة", "remove": "حذف", "back": "رجوع", "next": "التالي", "finish": "إنهاء"},
+  "channels": {"mute": "كتم", "all": "الكل", "channel": "قناة", "whisper": "همس", "briefing": "إحاطة"},
+  "tabs": {"status": "الحالة", "bots": "البوتات", "chiefs": "الرؤساء", "keybinds": "اختصارات المفاتيح", "options": "الخيارات"},
+  "options": {"language": "اللغة", "language_desc": "اختر لغة الواجهة", "display": "العرض", "overlay": "تراكب (عرض القناة النشطة)", "overlay_desc": "يعرض نافذة صغيرة مرئية دائمًا مع القناة المحددة", "audio": "المؤثرات الصوتية", "theme": "السمة المخصصة", "saveOptions": "حفظ الخيارات", "configuration": "التكوين", "exportConfig": "تصدير التكوين", "importConfig": "استيراد التكوين", "dangerZone": "منطقة الخطر", "resetComplete": "إعادة تعيين البرنامج بالكامل", "resetConfirm": "⚠️ سيؤدي هذا إلى حذف جميع التكوينات وإعادة تشغيل المعالج.\n\nهل أنت متأكد؟"},
+  "logs": {"title": "السجلات", "welcome": "مرحبا بك في Star Commander"},
+  "wizard": {"welcome": "مرحبا بك في Star Commander", "chooseRole": "اختر دورك", "commander": "القائد", "chief": "الرئيس"},
+  "languages": {"en": "English", "fr": "Français", "es": "Español", "pt": "Português", "ru": "Русский", "zh": "中文", "ja": "日本語", "ar": "العربية"}
+}

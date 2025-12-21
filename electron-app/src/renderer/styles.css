@@ -1192,3 +1192,25 @@ hr {
 .theme-color-item input[type="color"]:hover {
     border-color: var(--accent);
 }
+
+/* Language Selector */
+.language-select {
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    min-width: 150px;
+    transition: border-color 0.2s;
+}
+
+.language-select:hover {
+    border-color: var(--accent);
+}
+
+.language-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}

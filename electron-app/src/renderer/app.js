@@ -21,6 +21,10 @@ const channelButtons = document.querySelectorAll('.channel-btn');
 
 // Initialize
 async function init() {
+    // Initialize i18n first
+    const savedLang = await window.api.config.get('language');
+    await initI18n(savedLang || 'en');
+    
     // Check first launch
     const isFirstLaunch = await window.api.isFirstLaunch();
     if (isFirstLaunch) {
@@ -68,7 +72,7 @@ function applyModeUI() {
     const chiefStatusInfo = document.getElementById('chief-status-info');
     
     if (appMode === 'commandant') {
-        modeBadge.textContent = '👑 Commandant';
+        modeBadge.textContent = `👑 ${window.i18n.t('modes.commander')}`;
         modeBadge.classList.remove('chief');
         if (exportSection) exportSection.style.display = 'flex';
         if (chiefsAddSection) chiefsAddSection.style.display = 'block';
@@ -83,7 +87,7 @@ function applyModeUI() {
         if (botStatusGrid) botStatusGrid.style.display = 'grid';
         if (chiefStatusInfo) chiefStatusInfo.style.display = 'none';
     } else if (appMode === 'chief') {
-        modeBadge.textContent = '🎖️ Chef';
+        modeBadge.textContent = `🎖️ ${window.i18n.t('modes.chief')}`;
         modeBadge.classList.add('chief');
         if (exportSection) exportSection.style.display = 'none';
         if (chiefsAddSection) chiefsAddSection.style.display = 'none';
@@ -439,6 +443,31 @@ function setupEventListeners() {
     document.querySelectorAll('.theme-color-item input[type="color"]').forEach(input => {
         input.addEventListener('input', applyThemeFromInputs);
     });
+    
+    // Language selector
+    const languageSelect = document.getElementById('language-select');
+    if (languageSelect) {
+        languageSelect.value = window.i18n.getCurrentLanguage();
+        languageSelect.onchange = async () => {
+            const newLang = languageSelect.value;
+            await window.i18n.changeLanguage(newLang);
+            await window.api.config.set('language', newLang);
+            addLog(`Language changed to ${window.i18n.getAvailableLanguages()[newLang]}`, 'success');
+        };
+    }
+    
+    // Wizard language selector
+    const wizardLanguageSelect = document.getElementById('wizard-language-select');
+    if (wizardLanguageSelect) {
+        wizardLanguageSelect.value = window.i18n.getCurrentLanguage();
+        wizardLanguageSelect.onchange = async () => {
+            const newLang = wizardLanguageSelect.value;
+            await window.i18n.changeLanguage(newLang);
+            await window.api.config.set('language', newLang);
+            // Sync with main language selector
+            if (languageSelect) languageSelect.value = newLang;
+        };
+    }
 }
 
 // Toggle relay start/stop
@@ -486,13 +515,13 @@ function setRunningState(running) {
     
     if (running) {
         statusIndicator.classList.add('running');
-        statusText.textContent = 'Running';
-        btnStart.textContent = '■ Stop';
+        statusText.textContent = window.i18n.t('status.running');
+        btnStart.textContent = `■ ${window.i18n.t('buttons.stop')}`;
         btnStart.classList.remove('btn-primary');
     } else {
         statusIndicator.classList.remove('running');
-        statusText.textContent = 'Stopped';
-        btnStart.textContent = '▶ Start';
+        statusText.textContent = window.i18n.t('status.stopped');
+        btnStart.textContent = `▶ ${window.i18n.t('buttons.start')}`;
         btnStart.classList.add('btn-primary');
         
         // Reset all bot statuses

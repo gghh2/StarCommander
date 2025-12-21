@@ -6,6 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
     <title>Star Commander</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="i18n.js"></script>
 </head>
 <body>
     <!-- Custom Titlebar -->
@@ -26,11 +27,11 @@
         <div class="status-bar">
             <div class="status-indicator" id="status-indicator">
                 <span class="status-dot"></span>
-                <span class="status-text">Stopped</span>
+                <span class="status-text" data-i18n="status.stopped">Stopped</span>
             </div>
             <div class="status-actions">
-                <span class="mode-title" id="mode-badge">👑 Commandant</span>
-                <button class="btn btn-primary" id="btn-start">▶ Start</button>
+                <span class="mode-title" id="mode-badge" data-i18n="modes.commander">👑 Commander</span>
+                <button class="btn btn-primary" id="btn-start" data-i18n="buttons.start">▶ Start</button>
             </div>
         </div>
 
@@ -38,14 +39,14 @@
         <div class="main-panel">
             <!-- Left: Channel Selector -->
             <div class="channel-section">
-                <h3>📻 <span id="active-channel">MUTE</span></h3>
+                <h3>📻 <span id="active-channel" data-i18n="channels.mute">MUTE</span></h3>
                 <div class="channel-grid" id="channel-grid">
                     <button class="channel-btn active" data-target="mute">
-                        <span class="channel-name">MUTE</span>
+                        <span class="channel-name" data-i18n="channels.mute">MUTE</span>
                         <span class="channel-key">1</span>
                     </button>
                     <button class="channel-btn" data-target="all">
-                        <span class="channel-name">ALL</span>
+                        <span class="channel-name" data-i18n="channels.all">ALL</span>
                         <span class="channel-key">0</span>
                     </button>
                     <button class="channel-btn" data-target="channel1">
@@ -62,32 +63,32 @@
                     </button>
                     <!-- Briefing button in grid -->
                     <button class="channel-btn btn-briefing-grid" id="btn-briefing">
-                        <span class="channel-name">📢 Briefing</span>
+                        <span class="channel-name" data-i18n="channels.briefing">📢 Briefing</span>
                         <span class="channel-key">5</span>
                     </button>
                 </div>
                 <!-- Whisper button for Chiefs -->
-                <button class="btn btn-whisper" id="btn-whisper" style="display: none;">
+                <button class="btn btn-whisper" id="btn-whisper" style="display: none;" data-i18n="channels.whisper">
                     🎙️ Whisper
                 </button>
             </div>
 
             <!-- Right: Logs -->
             <div class="logs-section">
-                <h3>📊 Logs</h3>
+                <h3 data-i18n="logs.title">📊 Logs</h3>
                 <div class="logs-container" id="logs-container">
-                    <div class="log-entry log-info">Welcome to Star Commander</div>
+                    <div class="log-entry log-info" data-i18n="logs.welcome">Welcome to Star Commander</div>
                 </div>
             </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs" id="tabs-container">
-            <button class="tab-btn active" data-tab="status">Status</button>
-            <button class="tab-btn" data-tab="bots">Bots</button>
-            <button class="tab-btn" data-tab="chiefs">Chiefs</button>
-            <button class="tab-btn" data-tab="keybinds">Keybinds</button>
-            <button class="tab-btn" data-tab="options">Options</button>
+            <button class="tab-btn active" data-tab="status" data-i18n="tabs.status">Status</button>
+            <button class="tab-btn" data-tab="bots" data-i18n="tabs.bots">Bots</button>
+            <button class="tab-btn" data-tab="chiefs" data-i18n="tabs.chiefs">Chiefs</button>
+            <button class="tab-btn" data-tab="keybinds" data-i18n="tabs.keybinds">Keybinds</button>
+            <button class="tab-btn" data-tab="options" data-i18n="tabs.options">Options</button>
         </div>
 
         <!-- Tab Content -->
@@ -134,122 +135,108 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Export/Import buttons for Commandant -->
-                <div id="export-section" style="margin-top: 15px; display: flex; gap: 10px;">
-                    <button class="btn" id="btn-export-config">📤 Exporter config</button>
-                    <button class="btn" id="btn-import-config">📥 Importer config</button>
-                </div>
-                
-                <!-- Reset button -->
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
-                    <button class="btn btn-danger" id="btn-reset-config">🗑️ Reset complet</button>
-                </div>
             </div>
 
             <!-- Bots Tab (Commandant only) -->
             <div class="tab-pane" id="tab-bots">
                 <div class="bot-config-section">
-                    <h4>🎧 Emitter <span class="bot-desc">- listens to commanders</span></h4>
+                    <h4 data-i18n="bots.emitter">🎧 Emitter <span class="bot-desc" data-i18n="bots.emitter_desc">- listens to commanders</span></h4>
                     <div class="form-row">
                         <div class="form-group" style="flex: 2">
-                            <label>Bot Token</label>
-                            <input type="password" id="token-emitter" placeholder="Bot token...">
+                            <label data-i18n="bots.token">Bot Token</label>
+                            <input type="password" id="token-emitter" data-i18n-placeholder="bots.placeholders.token" placeholder="Bot token...">
                         </div>
                         <div class="form-group" style="flex: 1">
-                            <label>Source Channel ID</label>
-                            <input type="text" id="channel-source" placeholder="Channel ID...">
+                            <label data-i18n="bots.sourceChannel">Source Channel ID</label>
+                            <input type="text" id="channel-source" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
                         </div>
                     </div>
                 </div>
 
                 <div class="bot-config-section">
-                    <h4>📢 Receiver 1 <span class="bot-desc">- broadcasts to target</span></h4>
+                    <h4>📢 <span data-i18n="bots.receiver">Receiver</span> 1 <span class="bot-desc" data-i18n="bots.receiver_desc">- broadcasts to target</span></h4>
                     <div class="form-row">
                         <div class="form-group" style="flex: 1">
-                            <label>Display Name</label>
-                            <input type="text" id="name-receiver1" placeholder="e.g. Artilleurs">
+                            <label data-i18n="bots.displayName">Display Name</label>
+                            <input type="text" id="name-receiver1" data-i18n-placeholder="bots.placeholders.displayName" placeholder="e.g. Artillery">
                         </div>
                         <div class="form-group" style="flex: 1">
-                            <label>Target Channel ID</label>
-                            <input type="text" id="target1-id" placeholder="Channel ID...">
+                            <label data-i18n="bots.targetChannel">Target Channel ID</label>
+                            <input type="text" id="target1-id" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Bot Token</label>
-                        <input type="password" id="token-receiver1" placeholder="Bot token...">
+                        <label data-i18n="bots.token">Bot Token</label>
+                        <input type="password" id="token-receiver1" data-i18n-placeholder="bots.placeholders.token" placeholder="Bot token...">
                     </div>
                 </div>
 
                 <div class="bot-config-section">
-                    <h4>📢 Receiver 2 <span class="bot-desc">- broadcasts to target</span></h4>
+                    <h4>📢 <span data-i18n="bots.receiver">Receiver</span> 2 <span class="bot-desc" data-i18n="bots.receiver_desc">- broadcasts to target</span></h4>
                     <div class="form-row">
                         <div class="form-group" style="flex: 1">
-                            <label>Display Name</label>
-                            <input type="text" id="name-receiver2" placeholder="e.g. Ingénieurs">
+                            <label data-i18n="bots.displayName">Display Name</label>
+                            <input type="text" id="name-receiver2" data-i18n-placeholder="bots.placeholders.displayName" placeholder="e.g. Engineers">
                         </div>
                         <div class="form-group" style="flex: 1">
-                            <label>Target Channel ID</label>
-                            <input type="text" id="target2-id" placeholder="Channel ID...">
+                            <label data-i18n="bots.targetChannel">Target Channel ID</label>
+                            <input type="text" id="target2-id" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Bot Token</label>
-                        <input type="password" id="token-receiver2" placeholder="Bot token...">
+                        <label data-i18n="bots.token">Bot Token</label>
+                        <input type="password" id="token-receiver2" data-i18n-placeholder="bots.placeholders.token" placeholder="Bot token...">
                     </div>
                 </div>
 
                 <div class="bot-config-section">
-                    <h4>📢 Receiver 3 <span class="bot-desc">- broadcasts to target</span></h4>
+                    <h4>📢 <span data-i18n="bots.receiver">Receiver</span> 3 <span class="bot-desc" data-i18n="bots.receiver_desc">- broadcasts to target</span></h4>
                     <div class="form-row">
                         <div class="form-group" style="flex: 1">
-                            <label>Display Name</label>
-                            <input type="text" id="name-receiver3" placeholder="e.g. Escadrille">
+                            <label data-i18n="bots.displayName">Display Name</label>
+                            <input type="text" id="name-receiver3" data-i18n-placeholder="bots.placeholders.displayName" placeholder="e.g. Squadron">
                         </div>
                         <div class="form-group" style="flex: 1">
-                            <label>Target Channel ID</label>
-                            <input type="text" id="target3-id" placeholder="Channel ID...">
+                            <label data-i18n="bots.targetChannel">Target Channel ID</label>
+                            <input type="text" id="target3-id" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Bot Token</label>
-                        <input type="password" id="token-receiver3" placeholder="Bot token...">
+                        <label data-i18n="bots.token">Bot Token</label>
+                        <input type="password" id="token-receiver3" data-i18n-placeholder="bots.placeholders.token" placeholder="Bot token...">
                     </div>
                 </div>
 
                 <!-- Relay Channel for Whisper -->
                 <div class="bot-config-section">
-                    <h4>📡 Whisper Relay <span class="bot-desc">- for chief → commander communication</span></h4>
+                    <h4 data-i18n="bots.whisperRelay">📡 Whisper Relay <span class="bot-desc" data-i18n="bots.whisperRelay_desc">- for chief → commander communication</span></h4>
                     <div class="form-row">
                         <div class="form-group" style="flex: 1">
-                            <label>Channel ID (texte)</label>
-                            <input type="text" id="channel-relay" placeholder="Channel ID texte...">
+                            <label data-i18n="bots.channelIdText">Channel ID (text)</label>
+                            <input type="text" id="channel-relay" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
                         </div>
                         <div class="form-group" style="flex: 2">
-                            <label>Webhook URL <a href="#" onclick="openExternal('https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks'); return false;">(comment créer ?)</a></label>
-                            <input type="text" id="webhook-relay" placeholder="https://discord.com/api/webhooks/...">
+                            <label><span data-i18n="bots.webhookUrl">Webhook URL</span> <a href="#" onclick="openExternal('https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks'); return false;">(<span data-i18n="bots.webhookHelp">how to create?</span>)</a></label>
+                            <input type="text" id="webhook-relay" data-i18n-placeholder="bots.placeholders.webhookUrl" placeholder="https://discord.com/api/webhooks/...">
                         </div>
                     </div>
                 </div>
 
-                <button class="btn btn-primary" id="btn-save-bots">Save All</button>
+                <button class="btn btn-primary" id="btn-save-bots" data-i18n="bots.saveAll">Save All</button>
             </div>
 
             <!-- Chiefs Tab (Commandant: manage chiefs, Chef: view only) -->
             <div class="tab-pane" id="tab-chiefs">
-                <p class="help-text">🎖️ Définissez les chefs et leur channel assigné.<br>Chaque chef pourra whisper vers le channel Commandants.</p>
+                <p class="help-text" data-i18n="chiefs.description" data-i18n-html>Define chiefs and their assigned channel. Each chief can whisper to commanders.</p>
                 <div id="chiefs-list"></div>
                 <div id="chiefs-add-section">
                     <div class="form-row">
-                        <input type="text" id="new-chief-userid" placeholder="Discord User ID">
-                        <input type="text" id="new-chief-name" placeholder="Nom (ex: Raven)">
+                        <input type="text" id="new-chief-userid" data-i18n-placeholder="chiefs.placeholders.userId" placeholder="Discord User ID">
+                        <input type="text" id="new-chief-name" data-i18n-placeholder="chiefs.placeholders.name" placeholder="Name (e.g. Raven)">
                         <select id="new-chief-channel">
-                            <option value="">-- Channel --</option>
-                            <option value="receiver1">Receiver 1</option>
-                            <option value="receiver2">Receiver 2</option>
-                            <option value="receiver3">Receiver 3</option>
+                            <option value="" data-i18n="chiefs.selectChannel">-- Channel --</option>
                         </select>
-                        <button class="btn" id="btn-add-chief">Add</button>
+                        <button class="btn" id="btn-add-chief" data-i18n="chiefs.addChief">Add</button>
                     </div>
                 </div>
             </div>
@@ -298,13 +285,33 @@
 
             <!-- Options Tab -->
             <div class="tab-pane" id="tab-options">
-                <h4>🖥️ Affichage</h4>
+                <h4 data-i18n="options.language">Language</h4>
+                <div class="option-group">
+                    <div class="option-item">
+                        <div class="option-info">
+                            <span class="option-label" data-i18n="options.language">Language</span>
+                            <span class="option-desc" data-i18n="options.language_desc">Choose your interface language</span>
+                        </div>
+                        <select id="language-select" class="language-select">
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
+                            <option value="es">Español</option>
+                            <option value="pt">Português</option>
+                            <option value="ru">Русский</option>
+                            <option value="zh">中文</option>
+                            <option value="ja">日本語</option>
+                            <option value="ar">العربية</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <h4 data-i18n="options.display">Display</h4>
                 
                 <div class="option-group">
                     <div class="option-item">
                         <div class="option-info">
-                            <span class="option-label">📌 Overlay (affichage du channel actif)</span>
-                            <span class="option-desc">Affiche une petite fenêtre toujours visible avec le channel sélectionné</span>
+                            <span class="option-label" data-i18n="options.overlay">📌 Overlay (show active channel)</span>
+                            <span class="option-desc" data-i18n="options.overlay_desc">Displays a small always-visible window with the selected channel</span>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="option-overlay">
@@ -313,14 +320,14 @@
                     </div>
                 </div>
                 
-                <h4>🔊 Effets Audio</h4>
-                <p class="help-text">Ces effets s'appliquent uniquement aux voix relayées entre channels.</p>
+                <h4 data-i18n="options.audio">🔊 Audio Effects</h4>
+                <p class="help-text" data-i18n="options.audio_desc">These effects apply only to relayed voices between channels.</p>
                 
                 <div class="option-group">
                     <div class="option-item">
                         <div class="option-info">
-                            <span class="option-label">📻 Effet radio (talkie-walkie)</span>
-                            <span class="option-desc">Applique un filtre radio sur les voix transmises</span>
+                            <span class="option-label" data-i18n="options.radioEffect">📻 Radio effect (walkie-talkie)</span>
+                            <span class="option-desc" data-i18n="options.radioEffect_desc">Applies a radio filter on transmitted voices</span>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="option-radio-effect" checked>
@@ -330,8 +337,8 @@
                     
                     <div class="option-item" id="radio-intensity-row">
                         <div class="option-info">
-                            <span class="option-label">🎚️ Intensité de l'effet</span>
-                            <span class="option-desc">0% = léger, 100% = fort</span>
+                            <span class="option-label" data-i18n="options.intensity">🎚️ Effect intensity</span>
+                            <span class="option-desc" data-i18n="options.intensity_desc">0% = light, 100% = strong</span>
                         </div>
                         <div class="slider-container">
                             <input type="range" id="option-radio-intensity" min="0" max="100" value="50" class="slider">
@@ -341,8 +348,8 @@
                     
                     <div class="option-item">
                         <div class="option-info">
-                            <span class="option-label">🔘 Son de clic radio</span>
-                            <span class="option-desc">Joue un clic au début de chaque transmission</span>
+                            <span class="option-label" data-i18n="options.clickSound">🔘 Radio click sound</span>
+                            <span class="option-desc" data-i18n="options.clickSound_desc">Plays a click at the start of each transmission</span>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="option-click-sound" checked>
@@ -351,59 +358,81 @@
                     </div>
                 </div>
                 
-                <h4>🎨 Thème personnalisé</h4>
-                <p class="help-text">Personnalisez les couleurs de l'interface. Le thème par défaut est Star Citizen.</p>
+                <h4 data-i18n="options.theme">🎨 Custom Theme</h4>
+                <p class="help-text" data-i18n="options.theme_desc">Customize interface colors. Default theme is Star Citizen.</p>
                 
                 <div class="theme-grid">
                     <div class="theme-color-item">
-                        <label>Fond principal</label>
+                        <label data-i18n="options.bgPrimary">Primary background</label>
                         <input type="color" id="theme-bg-primary" value="#0c1621">
                     </div>
                     <div class="theme-color-item">
-                        <label>Fond secondaire</label>
+                        <label data-i18n="options.bgSecondary">Secondary background</label>
                         <input type="color" id="theme-bg-secondary" value="#14202e">
                     </div>
                     <div class="theme-color-item">
-                        <label>Fond tertiaire</label>
+                        <label data-i18n="options.bgTertiary">Tertiary background</label>
                         <input type="color" id="theme-bg-tertiary" value="#1a2c3f">
                     </div>
                     <div class="theme-color-item">
-                        <label>Accent principal</label>
+                        <label data-i18n="options.accentPrimary">Primary accent</label>
                         <input type="color" id="theme-accent" value="#11a9ed">
                     </div>
                     <div class="theme-color-item">
-                        <label>Accent hover</label>
+                        <label data-i18n="options.accentHover">Hover accent</label>
                         <input type="color" id="theme-accent-hover" value="#2daee8">
                     </div>
                     <div class="theme-color-item">
-                        <label>Texte secondaire</label>
+                        <label data-i18n="options.textSecondary">Secondary text</label>
                         <input type="color" id="theme-text-secondary" value="#8ea8c3">
                     </div>
                     <div class="theme-color-item">
-                        <label>Succès</label>
+                        <label data-i18n="options.success">Success</label>
                         <input type="color" id="theme-success" value="#00d97e">
                     </div>
                     <div class="theme-color-item">
-                        <label>Avertissement</label>
+                        <label data-i18n="options.warning">Warning</label>
                         <input type="color" id="theme-warning" value="#f7b731">
                     </div>
                     <div class="theme-color-item">
-                        <label>Erreur</label>
+                        <label data-i18n="options.error">Error</label>
                         <input type="color" id="theme-error" value="#ee5a6f">
                     </div>
                     <div class="theme-color-item">
-                        <label>Bordures</label>
+                        <label data-i18n="options.borders">Borders</label>
                         <input type="color" id="theme-border" value="#1a4d6b">
                     </div>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <button class="btn" id="btn-reset-theme">🔄 Reset Star Citizen</button>
-                    <button class="btn" id="btn-export-theme">📤 Exporter thème</button>
-                    <button class="btn" id="btn-import-theme">📥 Importer thème</button>
+                    <button class="btn" id="btn-reset-theme" data-i18n="options.resetTheme">🔄 Reset Star Citizen</button>
+                    <button class="btn" id="btn-export-theme" data-i18n="options.exportTheme">📤 Export theme</button>
+                    <button class="btn" id="btn-import-theme" data-i18n="options.importTheme">📥 Import theme</button>
                 </div>
                 
-                <button class="btn btn-primary" id="btn-save-options" style="margin-top: 15px;">Save Options</button>
+                <button class="btn btn-primary" id="btn-save-options" style="margin-top: 15px;" data-i18n="options.saveOptions">Save Options</button>
+                
+                <!-- Export/Import config (Commandant only) -->
+                <div id="export-section" style="margin-top: 30px;">
+                    <h4 data-i18n="options.configuration">📦 Configuration</h4>
+                    <p class="help-text" data-i18n="options.config_desc">Export your configuration to share with your chiefs, or import an existing configuration.</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn" id="btn-export-config" data-i18n="options.exportConfig">📤 Export config</button>
+                        <button class="btn" id="btn-import-config" data-i18n="options.importConfig">📥 Import config</button>
+                    </div>
+                </div>
+                
+                <!-- Reset complet -->
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid var(--border);">
+                    <div style="background: rgba(238, 74, 111, 0.1); border-left: 4px solid var(--error); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                        <h4 style="margin: 0 0 8px 0; color: var(--error); font-size: 14px;" data-i18n="options.dangerZone">⚠️ Danger Zone</h4>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-secondary); line-height: 1.5;" data-i18n="options.resetWarning" data-i18n-html>
+                            Complete reset deletes <strong>all configuration</strong>: bots, channels, chiefs, keybinds and settings.
+                            <br>This action is <strong>irreversible</strong>. The configuration wizard will restart.
+                        </p>
+                    </div>
+                    <button class="btn btn-danger" id="btn-reset-config" data-i18n="options.resetComplete">🗑️ Complete software reset</button>
+                </div>
             </div>
         </div>
     </div>
@@ -411,7 +440,21 @@
     <!-- Setup Wizard -->
     <div class="wizard-overlay" id="wizard-overlay" style="display: none;">
         <div class="wizard">
-            <h2>⭐ Welcome to Star Commander</h2>
+            <h2 data-i18n="wizard.welcome">⭐ Welcome to Star Commander</h2>
+            
+            <!-- Language selector in wizard -->
+            <div style="text-align: right; margin-bottom: 15px;">
+                <select id="wizard-language-select" class="language-select" style="min-width: 120px;">
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                    <option value="es">Español</option>
+                    <option value="pt">Português</option>
+                    <option value="ru">Русский</option>
+                    <option value="zh">中文</option>
+                    <option value="ja">日本語</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
             
             <!-- Step 0: Choose Mode -->
             <div class="wizard-step" id="wizard-step-0">

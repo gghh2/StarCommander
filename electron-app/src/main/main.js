@@ -51,6 +51,7 @@ const store = new Store({
             radioEffectIntensity: 50,
             clickSoundEnabled: true
         },
+        language: 'en',
         setupComplete: false
     }
 });
