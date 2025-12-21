@@ -1,6 +1,10 @@
-import sys
 import random
-from PySide6 import QtCore, QtWidgets, QtGui
+import sys
+import threading
+
+from PySide6 import QtCore, QtGui, QtWidgets
+
+from backend.api import start_server
 
 
 class MyWidget(QtWidgets.QWidget):
@@ -24,6 +28,11 @@ class MyWidget(QtWidgets.QWidget):
 
 
 if __name__ == "__main__":
+    # Start the backend server in a separate thread
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+
+    # Start the Qt application
     app = QtWidgets.QApplication([])
 
     widget = MyWidget()
