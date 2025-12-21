@@ -3,6 +3,9 @@
  * V4.0 - Electron version
  */
 
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first'); // Forcer IPv4
+
 const { Client, GatewayIntentBits } = require('discord.js');
 const { 
     joinVoiceChannel, 
@@ -61,7 +64,7 @@ async function start(cfg, onSpeaking, targetGetter) {
     client = createClient();
     
     return new Promise((resolve, reject) => {
-        client.once('ready', async () => {
+        client.once('clientReady', async () => {
             console.log(`[Emitter] Logged in as ${client.user.tag}`);
             
             try {

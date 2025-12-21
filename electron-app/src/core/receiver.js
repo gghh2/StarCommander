@@ -3,6 +3,9 @@
  * V4.0 - Electron version with Whisper support
  */
 
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first'); // Forcer IPv4
+
 const { Client, GatewayIntentBits } = require('discord.js');
 const { 
     joinVoiceChannel, 
