@@ -68,12 +68,14 @@ class FastAPISetup:
         Returns:
             None
         """
+        from ..routers.bot_routes import bot_crud_router
         from ..routers.root import core_router, root_router
 
         log.info("Setting up API routes")
 
         api_v1_router = APIRouter(prefix="/api/v1")
         api_v1_router.include_router(core_router)
+        api_v1_router.include_router(bot_crud_router)
 
         app.include_router(root_router)
         app.include_router(api_v1_router)
