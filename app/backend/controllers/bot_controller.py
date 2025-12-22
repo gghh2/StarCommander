@@ -130,6 +130,24 @@ class BotController(Controller):
         log.info(f"Bot deleted: {bot}")
         return True
 
+    def delete_bots(self) -> int:
+        """Delete all bots from the database
+
+        Returns:
+            int: The number of bots deleted
+        """
+
+        statement = select(Bot)
+        bots = self.session.exec(statement).all()
+        count = len(bots)
+
+        for bot in bots:
+            self.session.delete(bot)
+
+        self.session.commit()
+        log.info(f"All bots deleted. Total count: {count}")
+        return count
+
     def start_bot(self, bot_id: UUID) -> bool:
         """Start the bot's operation
 

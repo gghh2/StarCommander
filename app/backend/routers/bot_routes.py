@@ -236,6 +236,27 @@ def delete_bot_endpoint(bot_id: str, db=Depends(get_db)):
         return JSONResponse(status_code=404, content={"error": "Bot not found."})
 
 
+@bot_crud_router.delete(
+    "/",
+    summary="Delete All Bots",
+    description="Delete all bots from the system.",
+    response_description="All bots deleted",
+    status_code=204,
+    responses={
+        204: {
+            "description": "All bots deleted successfully.",
+        },
+    },
+)
+def delete_all_bots_endpoint(db=Depends(get_db)):
+    """Delete all bots from the system."""
+
+    log.debug("Delete All Bots endpoint called.")
+    controller = BotController(db)
+    controller.delete_bots()
+    return Response(status_code=204)
+
+
 # --------------------------------------------------------------------------- #
 # Bot Operations Endpoints
 # --------------------------------------------------------------------------- #
