@@ -11,15 +11,14 @@ class ManagerBot(BaseBot):
     # Constants
     # --------------------------------------------------------------------------- #
 
-    PERMISSIONS_REQUIRED = discord.Permissions(
-        view_channel=True,
-        manage_channels=True,
-        manage_roles=True,
-        move_members=True,
-        read_message_history=True,
-        connect=True,
-        speak=True,
-    )
+    PERMISSIONS_REQUIRED = {
+        "manage_channels": True,
+        "manage_roles": True,
+        "move_members": True,
+        "read_message_history": True,
+        "connect": True,
+        "speak": True,
+    }
 
     # --------------------------------------------------------------------------- #
     # Initialization

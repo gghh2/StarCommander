@@ -20,11 +20,11 @@ class VoiceRelayBot(BaseBot, AudioRelay, VoiceSupport):
     # Constants
     # --------------------------------------------------------------------------- #
 
-    PERMISSIONS_REQUIRED = discord.Permissions(
-        view_channel=True,
-        connect=True,
-        speak=True,
-    )
+    PERMISSIONS_REQUIRED = {
+        "view_channel": True,
+        "connect": True,
+        "speak": True,
+    }
 
     # --------------------------------------------------------------------------- #
     # Initialization

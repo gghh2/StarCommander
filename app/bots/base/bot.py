@@ -119,13 +119,13 @@ class BaseBot(discord.Client):
     # --------------------------------------------------------------------------- #
 
     def check_permissions(
-        self, guild: discord.Guild, permissions: discord.Permissions
+        self, guild: discord.Guild, permissions: dict[str, bool]
     ) -> bool:
         """Check if the bot has the specified permissions in a guild.
 
         Args:
             guild (discord.Guild): The guild to check permissions in.
-            permissions (discord.Permissions): The permissions to check.
+            permissions (dict[str, bool]): The permissions to check.
 
         Returns:
             bool: True if the bot has the specified permissions, False otherwise.
@@ -136,30 +136,31 @@ class BaseBot(discord.Client):
             return False
 
         permissions_state = {}
-        one_perm_missing = False
-        for perm, value in permissions:
-            if not one_perm_missing:
-                if not getattr(me.guild_permissions, perm):
-                    one_perm_missing = True
-            permissions_state[perm] = getattr(me.guild_permissions, perm)  # return bool
+        has_all_permission = True
+        for perm, required in permissions.items():
+            current = getattr(me.guild_permissions, perm, False)
+            permissions_state[perm] = current if required else True
+            log.debug(
+                f"Permission check in guild {guild.name} ({guild.id}) - {perm}: required={required}, current={current}"
+            )
+            if required and not current:
+                has_all_permission = False
 
-        if one_perm_missing:
-            log.warning(
-                f"Permissions check in guild {guild.name} (ID: {guild.id}): "
-                f"INSUFFICIENT permissions."
+        if has_all_permission:
+            log.info(
+                f"Bot ({self.user}) has all required permissions in guild {guild.name} ({guild.id})"
             )
         else:
-            log.info(
-                f"Permissions check in guild {guild.name} (ID: {guild.id}): "
-                f"SUFFICIENT permissions."
+            log.warning(
+                f"Bot ({self.user}) lacks some required permissions in guild {guild.name} ({guild.id})"
             )
 
         self.emit_event(
             "permissions_check",
             {
                 "guild_id": guild.id,
-                "enough_permissions": not one_perm_missing,
+                "enough_permissions": has_all_permission,
                 "permissions_checked": permissions_state,
             },
         )
-        return not one_perm_missing
+        return has_all_permission

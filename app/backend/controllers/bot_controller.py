@@ -167,7 +167,7 @@ class BotController(Controller):
 
         # Placeholder for actual start logic
         token = decrypt_token(bot.token_encrypted)
-        process = start_bot(str(bot.id), token)
+        process = start_bot(str(bot.id), token, bot.type)
         bot_registry.register(str(bot.id), process)
         log.info(f"Bot started: {bot}")
         return True
