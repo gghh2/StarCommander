@@ -16,11 +16,19 @@ log = Logger.get_logger(__name__)
 
 class VoiceRelayBot(BaseBot, AudioRelay, VoiceSupport):
 
+    # --------------------------------------------------------------------------- #
+    # Constants
+    # --------------------------------------------------------------------------- #
+
     PERMISSIONS_REQUIRED = discord.Permissions(
         view_channel=True,
         connect=True,
         speak=True,
     )
+
+    # --------------------------------------------------------------------------- #
+    # Initialization
+    # --------------------------------------------------------------------------- #
 
     def __init__(
         self,
