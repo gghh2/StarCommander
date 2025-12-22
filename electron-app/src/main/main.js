@@ -125,24 +125,24 @@ function createWindow() {
         }
     });
 
-    // Prevent closing, minimize to tray instead
-    mainWindow.on('close', (event) => {
-        if (!app.isQuitting) {
-            event.preventDefault();
-            mainWindow.hide();
-            
-            // Show notification first time
-            if (!tray.notificationShown) {
-                tray.displayBalloon({
-                    title: 'Star Commander',
-                    content: 'App minimized to system tray. Double-click tray icon to restore.',
-                    icon: path.join(__dirname, '../../assets/icon.ico')
-                });
-                tray.notificationShown = true;
-            }
-        }
-        return false;
-    });
+	// Prevent closing, minimize to tray instead
+	mainWindow.on('close', (event) => {
+	    if (!app.isQuitting) {
+	        event.preventDefault();
+	        mainWindow.hide();
+	        
+	        // Show notification first time - CHECK if tray exists
+	        if (tray && !tray.isDestroyed() && !tray.notificationShown) {
+	            tray.displayBalloon({
+	                title: 'Star Commander',
+	                content: 'App minimized to system tray. Double-click tray icon to restore.',
+	                icon: path.join(__dirname, '../../assets/icon.ico')
+	            });
+	            tray.notificationShown = true;
+	        }
+	    }
+	    return false;
+	});
 
     if (process.argv.includes('--dev')) {
         mainWindow.webContents.openDevTools();
@@ -264,12 +264,21 @@ function createTray() {
         },
         { type: 'separator' },
         {
-            label: 'Quit',
-            click: () => {
-                app.isQuitting = true;
-                app.quit();
-            }
-        }
+		    label: 'Quit',
+		    click: () => {
+		        // Set flag first
+		        app.isQuitting = true;
+		        
+		        // Cleanup tray immediately
+		        if (tray && !tray.isDestroyed()) {
+		            tray.destroy();
+		            tray = null;
+		        }
+		        
+		        // Quit
+		        app.quit();
+		    }
+		}
     ]);
     
     tray.setContextMenu(contextMenu);
@@ -294,6 +303,16 @@ function createTray() {
         }
     });
 }
+
+// Destroy tray properly
+function destroyTray() {
+    if (tray && !tray.isDestroyed()) {
+        tray.destroy();
+        tray = null;
+    }
+}
+
+
 
 // Key mapping for uiohook
 const KEY_MAP = {
@@ -471,13 +490,22 @@ function updateTrayStatus(isRunning) {
             enabled: false
         },
         { type: 'separator' },
-        {
-            label: 'Quit',
-            click: () => {
-                app.isQuitting = true;
-                app.quit();
-            }
-        }
+		{
+		    label: 'Quit',
+		    click: () => {
+		        // Set flag first
+		        app.isQuitting = true;
+		        
+		        // Cleanup tray immediately
+		        if (tray && !tray.isDestroyed()) {
+		            tray.destroy();
+		            tray = null;
+		        }
+		        
+		        // Quit
+		        app.quit();
+		    }
+		}
     ]);
     
     tray.setContextMenu(contextMenu);
@@ -927,9 +955,16 @@ app.on('activate', () => {
     }
 });
 
-app.on('will-quit', async () => {
-    cleanupKeybinds(); // Use uiohook cleanup instead
+app.on('will-quit', async (event) => {
+    event.preventDefault(); // Empêche la fermeture immédiate
+    
+    // Cleanup dans l'ordre
+    cleanupKeybinds();
     await cleanupBeforeClose();
+    destroyTray(); // ← AJOUTE
+    
+    // Maintenant on peut vraiment quitter
+    app.exit(0);
 });
 
 
