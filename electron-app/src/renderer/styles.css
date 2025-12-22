@@ -1298,3 +1298,25 @@ hr {
 #btn-load-members {
     width: 100%;
 }
+
+/* Selected channel/member indicator */
+.selected-item {
+    padding: 8px 12px;
+    margin-top: 5px;
+    background: var(--bg-tertiary);
+    border-left: 3px solid var(--success);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.selected-item strong {
+    color: var(--accent);
+}
+
+.selected-item code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 2px 6px;
+    border-radius: 3px;
+}

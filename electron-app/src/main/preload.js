@@ -60,5 +60,9 @@ contextBridge.exposeInMainWorld('api', {
     importTheme: () => ipcRenderer.invoke('import-theme'),
     
     // Discord members
-    getGuildMembers: () => ipcRenderer.invoke('get-guild-members')
+    getGuildMembers: (token) => ipcRenderer.invoke('get-guild-members', token),
+
+    // Discord chanels
+    getGuildChannels: (token) => ipcRenderer.invoke('get-guild-channels', token), // ← Ajoute le paramètre token
+
 });

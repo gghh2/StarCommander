@@ -1,15 +1,17 @@
 {
   "name": "star-commander",
-  "version": "4.0.0",
+  "version": "4.5.0",
   "description": "Discord voice relay for Star Citizen fleet operations",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
     "build": "electron-builder",
-    "build:win": "electron-builder --win"
+    "build:win": "electron-builder --win --config.win.target=nsis",
+    "build:msix": "electron-builder --win --config.win.target=appx",
+    "build:all": "electron-builder --win"
   },
-  "author": "Nicos",
+  "author": "KiFouine",
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
@@ -33,7 +35,8 @@
     "files": [
       "src/**/*",
       "assets/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "package.json"
     ],
     "extraResources": [
       {
@@ -42,14 +45,42 @@
       }
     ],
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.png"
+    "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "appx",
+          "arch": ["x64"]
+        }
+      ],
+      "publisherName": "CN=KiFouine",
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": true,
+      "differentialPackage": false,
+      "packElevateHelper": true,
+      "runAfterFinish": true,
+      "warningsAsErrors": false,
+      "artifactName": "${productName} Setup ${version}.${ext}"
+    },
+    "appx": {
+      "applicationId": "StarCommander",
+      "backgroundColor": "#0c1621",
+      "displayName": "Star Commander",
+      "identityName": "StarCommander",
+      "publisher": "CN=KiFouine",
+      "publisherDisplayName": "KiFouine",
+      "languages": ["en-US", "fr-FR", "es-ES", "pt-PT", "ru-RU", "zh-CN", "ja-JP", "ar-SA"]
     }
   }
 }

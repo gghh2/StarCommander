@@ -139,6 +139,11 @@
 
             <!-- Bots Tab (Commandant only) -->
             <div class="tab-pane" id="tab-bots">
+                <!-- Load Channels Button -->
+                <button class="btn" id="btn-load-channels" style="display: none; margin-bottom: 15px;">
+                    <span id="load-channels-text">🔄 Load Discord Channels</span>
+                </button>
+                
                 <div class="bot-config-section">
                     <h4 data-i18n="bots.emitter">🎧 Emitter <span class="bot-desc" data-i18n="bots.emitter_desc">- listens to commanders</span></h4>
                     <div class="form-row">
@@ -148,7 +153,21 @@
                         </div>
                         <div class="form-group" style="flex: 1">
                             <label data-i18n="bots.sourceChannel">Source Channel ID</label>
-                            <input type="text" id="channel-source" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
+                            <div style="position: relative;">
+                                <input 
+                                    type="text" 
+                                    id="channel-source-search" 
+                                    list="channels-list-source"
+                                    placeholder="Search channel or paste ID"
+                                    autocomplete="off"
+                                    style="width: 100%;">
+                                <datalist id="channels-list-source"></datalist>
+                                <input type="hidden" id="channel-source">
+                                <div id="selected-channel-source" class="selected-item" style="display: none;">
+                                    Selected: <strong id="selected-channel-name-source"></strong> 
+                                    (<code id="selected-channel-id-source"></code>)
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -162,7 +181,21 @@
                         </div>
                         <div class="form-group" style="flex: 1">
                             <label data-i18n="bots.targetChannel">Target Channel ID</label>
-                            <input type="text" id="target1-id" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
+                            <div style="position: relative;">
+                                <input 
+                                    type="text" 
+                                    id="target1-search" 
+                                    list="channels-list-1"
+                                    placeholder="Search channel or paste ID"
+                                    autocomplete="off"
+                                    style="width: 100%;">
+                                <datalist id="channels-list-1"></datalist>
+                                <input type="hidden" id="target1-id">
+                                <div id="selected-channel-1" class="selected-item" style="display: none;">
+                                    Selected: <strong id="selected-channel-name-1"></strong> 
+                                    (<code id="selected-channel-id-1"></code>)
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -180,7 +213,21 @@
                         </div>
                         <div class="form-group" style="flex: 1">
                             <label data-i18n="bots.targetChannel">Target Channel ID</label>
-                            <input type="text" id="target2-id" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
+                            <div style="position: relative;">
+                                <input 
+                                    type="text" 
+                                    id="target2-search" 
+                                    list="channels-list-2"
+                                    placeholder="Search channel or paste ID"
+                                    autocomplete="off"
+                                    style="width: 100%;">
+                                <datalist id="channels-list-2"></datalist>
+                                <input type="hidden" id="target2-id">
+                                <div id="selected-channel-2" class="selected-item" style="display: none;">
+                                    Selected: <strong id="selected-channel-name-2"></strong> 
+                                    (<code id="selected-channel-id-2"></code>)
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -198,7 +245,21 @@
                         </div>
                         <div class="form-group" style="flex: 1">
                             <label data-i18n="bots.targetChannel">Target Channel ID</label>
-                            <input type="text" id="target3-id" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
+                            <div style="position: relative;">
+                                <input 
+                                    type="text" 
+                                    id="target3-search" 
+                                    list="channels-list-3"
+                                    placeholder="Search channel or paste ID"
+                                    autocomplete="off"
+                                    style="width: 100%;">
+                                <datalist id="channels-list-3"></datalist>
+                                <input type="hidden" id="target3-id">
+                                <div id="selected-channel-3" class="selected-item" style="display: none;">
+                                    Selected: <strong id="selected-channel-name-3"></strong> 
+                                    (<code id="selected-channel-id-3"></code>)
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -207,20 +268,34 @@
                     </div>
                 </div>
 
-                <!-- Relay Channel for Whisper -->
-                <div class="bot-config-section">
-                    <h4 data-i18n="bots.whisperRelay">📡 Whisper Relay <span class="bot-desc" data-i18n="bots.whisperRelay_desc">- for chief → commander communication</span></h4>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label data-i18n="bots.channelIdText">Channel ID (text)</label>
-                            <input type="text" id="channel-relay" data-i18n-placeholder="bots.placeholders.channelId" placeholder="Channel ID...">
-                        </div>
-                        <div class="form-group" style="flex: 2">
-                            <label><span data-i18n="bots.webhookUrl">Webhook URL</span> <a href="#" onclick="openExternal('https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks'); return false;">(<span data-i18n="bots.webhookHelp">how to create?</span>)</a></label>
-                            <input type="text" id="webhook-relay" data-i18n-placeholder="bots.placeholders.webhookUrl" placeholder="https://discord.com/api/webhooks/...">
-                        </div>
-                    </div>
-                </div>
+				<!-- Relay Channel for Whisper -->
+				<div class="bot-config-section">
+				    <h4 data-i18n="bots.whisperRelay">📡 Whisper Relay <span class="bot-desc" data-i18n="bots.whisperRelay_desc">- for chief → commander communication</span></h4>
+				    <div class="form-row">
+				        <div class="form-group" style="flex: 1">
+				            <label data-i18n="bots.channelIdText">Channel ID (text)</label>
+				            <div style="position: relative;">
+				                <input 
+				                    type="text" 
+				                    id="channel-relay-search" 
+				                    list="channels-list-relay"
+				                    placeholder="Search channel or paste ID"
+				                    autocomplete="off"
+				                    style="width: 100%;">
+				                <datalist id="channels-list-relay"></datalist>
+				                <input type="hidden" id="channel-relay">
+				                <div id="selected-channel-relay" class="selected-item" style="display: none;">
+				                    Selected: <strong id="selected-channel-name-relay"></strong> 
+				                    (<code id="selected-channel-id-relay"></code>)
+				                </div>
+				            </div>
+				        </div>
+				        <div class="form-group" style="flex: 2">
+				            <label><span data-i18n="bots.webhookUrl">Webhook URL</span> <a href="#" onclick="openExternal('https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks'); return false;">(<span data-i18n="bots.webhookHelp">how to create?</span>)</a></label>
+				            <input type="text" id="webhook-relay" data-i18n-placeholder="bots.placeholders.webhookUrl" placeholder="https://discord.com/api/webhooks/...">
+				        </div>
+				    </div>
+				</div>
 
                 <button class="btn btn-primary" id="btn-save-bots" data-i18n="bots.saveAll">Save All</button>
             </div>
@@ -610,97 +685,178 @@
                 <button class="btn btn-primary" onclick="wizardValidateStep2()" data-i18n="wizard.next">Next →</button>
             </div>
             
-            <!-- Step 3: Channels -->
-            <div class="wizard-step" id="wizard-step-cmd-3" style="display: none;">
-                <h3 data-i18n="wizard.step3_title">Step 3: Configure Voice Channels</h3>
-                <p class="wizard-note" data-i18n="wizard.step3_note">💡 Right-click on a channel → "Copy ID"</p>
-                
-                <div class="form-group">
-                    <label data-i18n="wizard.sourceChannel">Source Channel (Commanders) - voice</label>
-                    <input type="text" id="wizard-channel-source" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
-                </div>
-                <hr>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="wizard.target1_name">Target 1 - Name</label>
-                        <input type="text" id="wizard-target1-name" data-i18n-placeholder="wizard.exampleArtillery" placeholder="e.g. Artillery">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
-                        <input type="text" id="wizard-target1-id" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="wizard.target2_name">Target 2 - Name</label>
-                        <input type="text" id="wizard-target2-name" data-i18n-placeholder="wizard.exampleEngineers" placeholder="e.g. Engineers">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
-                        <input type="text" id="wizard-target2-id" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="wizard.target3_name">Target 3 - Name</label>
-                        <input type="text" id="wizard-target3-name" data-i18n-placeholder="wizard.examplePilots" placeholder="e.g. Pilots">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
-                        <input type="text" id="wizard-target3-id" data-i18n-placeholder="wizard.channelID" placeholder="Channel ID...">
-                    </div>
-                </div>
-                <button class="btn" onclick="wizardStep('cmd-2')" data-i18n="wizard.back">← Back</button>
-                <button class="btn btn-primary" onclick="wizardValidateStep3()" data-i18n="wizard.next">Next →</button>
-            </div>
+			<!-- Step 3: Channels -->
+			<div class="wizard-step" id="wizard-step-cmd-3" style="display: none;">
+			    <h3 data-i18n="wizard.step3_title">Step 3: Configure Voice Channels</h3>
+			    
+			    <!-- Load Channels Button -->
+			    <button class="btn" id="wizard-btn-load-channels" style="margin-bottom: 15px;">
+			        <span id="wizard-load-channels-text">🔄 Load Discord Channels</span>
+			    </button>
+			    
+			    <p class="wizard-note" data-i18n="wizard.step3_note">💡 Load channels above or paste IDs manually</p>
+			    
+			    <div class="form-group">
+			        <label data-i18n="wizard.sourceChannel">Source Channel (Commanders) - voice</label>
+			        <div style="position: relative;">
+			            <input 
+			                type="text" 
+			                id="wizard-channel-source-search" 
+			                list="wizard-channels-list-source"
+			                placeholder="Search channel or paste ID"
+			                autocomplete="off"
+			                style="width: 100%;">
+			            <datalist id="wizard-channels-list-source"></datalist>
+			            <input type="hidden" id="wizard-channel-source">
+			            <div id="wizard-selected-channel-source" class="selected-item" style="display: none;">
+			                Selected: <strong id="wizard-selected-channel-name-source"></strong> 
+			                (<code id="wizard-selected-channel-id-source"></code>)
+			            </div>
+			        </div>
+			    </div>
+			    
+			    <hr>
+			    
+			    <div class="form-row">
+			        <div class="form-group">
+			            <label data-i18n="wizard.target1_name">Target 1 - Name</label>
+			            <input type="text" id="wizard-target1-name" data-i18n-placeholder="wizard.exampleArtillery" placeholder="e.g. Artillery">
+			        </div>
+			        <div class="form-group">
+			            <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
+			            <div style="position: relative;">
+			                <input 
+			                    type="text" 
+			                    id="wizard-target1-search" 
+			                    list="wizard-channels-list-1"
+			                    placeholder="Search or paste ID"
+			                    autocomplete="off"
+			                    style="width: 100%;">
+			                <datalist id="wizard-channels-list-1"></datalist>
+			                <input type="hidden" id="wizard-target1-id">
+			                <div id="wizard-selected-channel-1" class="selected-item" style="display: none;">
+			                    <strong id="wizard-selected-channel-name-1"></strong> 
+			                    (<code id="wizard-selected-channel-id-1"></code>)
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+			    
+			    <div class="form-row">
+			        <div class="form-group">
+			            <label data-i18n="wizard.target2_name">Target 2 - Name</label>
+			            <input type="text" id="wizard-target2-name" data-i18n-placeholder="wizard.exampleEngineers" placeholder="e.g. Engineers">
+			        </div>
+			        <div class="form-group">
+			            <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
+			            <div style="position: relative;">
+			                <input 
+			                    type="text" 
+			                    id="wizard-target2-search" 
+			                    list="wizard-channels-list-2"
+			                    placeholder="Search or paste ID"
+			                    autocomplete="off"
+			                    style="width: 100%;">
+			                <datalist id="wizard-channels-list-2"></datalist>
+			                <input type="hidden" id="wizard-target2-id">
+			                <div id="wizard-selected-channel-2" class="selected-item" style="display: none;">
+			                    <strong id="wizard-selected-channel-name-2"></strong> 
+			                    (<code id="wizard-selected-channel-id-2"></code>)
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+			    
+			    <div class="form-row">
+			        <div class="form-group">
+			            <label data-i18n="wizard.target3_name">Target 3 - Name</label>
+			            <input type="text" id="wizard-target3-name" data-i18n-placeholder="wizard.examplePilots" placeholder="e.g. Pilots">
+			        </div>
+			        <div class="form-group">
+			            <label data-i18n="wizard.channelID_voice">Channel ID (voice)</label>
+			            <div style="position: relative;">
+			                <input 
+			                    type="text" 
+			                    id="wizard-target3-search" 
+			                    list="wizard-channels-list-3"
+			                    placeholder="Search or paste ID"
+			                    autocomplete="off"
+			                    style="width: 100%;">
+			                <datalist id="wizard-channels-list-3"></datalist>
+			                <input type="hidden" id="wizard-target3-id">
+			                <div id="wizard-selected-channel-3" class="selected-item" style="display: none;">
+			                    <strong id="wizard-selected-channel-name-3"></strong> 
+			                    (<code id="wizard-selected-channel-id-3"></code>)
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+			    
+			    <button class="btn" onclick="wizardStep('cmd-2')" data-i18n="wizard.back">← Back</button>
+			    <button class="btn btn-primary" onclick="wizardValidateStep3()" data-i18n="wizard.next">Next →</button>
+			</div>
             
-            <!-- Step 4: Whisper Relay -->
-            <div class="wizard-step" id="wizard-step-cmd-4" style="display: none;">
-                <h3 data-i18n="wizard.step4_title">Step 4: Configure Whisper Relay</h3>
-                <p data-i18n="wizard.step4_intro">Whisper allows chiefs to speak directly to the commander.</p>
-                
-                <div class="wizard-instructions">
-                    <h4 data-i18n="wizard.step4_relay_title">📡 Create the relay channel:</h4>
-                    <ol>
-                        <li data-i18n="wizard.step4_relay_instr1" data-i18n-html>Create a <strong>private TEXT channel</strong> (e.g. "star-commander-relay")</li>
-                        <li data-i18n="wizard.step4_relay_instr2" data-i18n-html>In channel permissions, <strong>add your 4 bots</strong>:
-                            <ul>
-                                <li data-i18n="wizard.step4_relay_perm1">✅ View Channel</li>
-                                <li data-i18n="wizard.step4_relay_perm2">✅ Read Message History</li>
-                                <li data-i18n="wizard.step4_relay_perm3">✅ Send Messages</li>
-                                <li data-i18n="wizard.step4_relay_perm4">✅ Manage Messages (to delete commands)</li>
-                            </ul>
-                        </li>
-                        <li data-i18n="wizard.step4_relay_instr3" data-i18n-html>Right-click on the channel → <strong>"Copy ID"</strong></li>
-                    </ol>
-                </div>
-                
-                <div class="form-group">
-                    <label data-i18n="wizard.relayChannelID">📡 Relay Channel ID (text)</label>
-                    <input type="text" id="wizard-channel-relay" data-i18n-placeholder="wizard.relayChannelPlaceholder" placeholder="Text channel ID...">
-                </div>
-                
-                <div class="wizard-instructions" style="margin-top: 15px;">
-                    <h4 data-i18n="wizard.step4_webhook_title">🔗 Create the Webhook:</h4>
-                    <ol>
-                        <li data-i18n="wizard.step4_webhook_instr1" data-i18n-html><strong>Server Settings</strong> (click on server name)</li>
-                        <li data-i18n="wizard.step4_webhook_instr2" data-i18n-html><strong>"Integrations"</strong> tab</li>
-                        <li data-i18n="wizard.step4_webhook_instr3" data-i18n-html>Click <strong>"Webhooks"</strong> → <strong>"New Webhook"</strong></li>
-                        <li data-i18n="wizard.step4_webhook_instr4" data-i18n-html>Select the <strong>relay channel</strong> created previously</li>
-                        <li data-i18n="wizard.step4_webhook_instr5" data-i18n-html>Click <strong>"Copy Webhook URL"</strong></li>
-                    </ol>
-                </div>
-                
-                <div class="form-group">
-                    <label data-i18n="wizard.webhookURL">🔗 Webhook URL</label>
-                    <input type="text" id="wizard-webhook-relay" placeholder="https://discord.com/api/webhooks/...">
-                </div>
-                
-                <p class="wizard-note" data-i18n="wizard.step4_note">⚠️ Without this configuration, Whisper won't work!</p>
-                
-                <button class="btn" onclick="wizardStep('cmd-3')" data-i18n="wizard.back">← Back</button>
-                <button class="btn btn-primary" onclick="wizardValidateStep4()" data-i18n="wizard.finish">Finish ✓</button>
-            </div>
+			<!-- Step 4: Whisper Relay -->
+			<div class="wizard-step" id="wizard-step-cmd-4" style="display: none;">
+			    <h3 data-i18n="wizard.step4_title">Step 4: Configure Whisper Relay</h3>
+			    <p data-i18n="wizard.step4_intro">Whisper allows chiefs to speak directly to the commander.</p>
+			    
+			    <div class="wizard-instructions">
+			        <h4 data-i18n="wizard.step4_relay_title">📡 Create the relay channel:</h4>
+			        <ol>
+			            <li data-i18n="wizard.step4_relay_instr1" data-i18n-html>Create a <strong>private TEXT channel</strong> (e.g. "star-commander-relay")</li>
+			            <li data-i18n="wizard.step4_relay_instr2" data-i18n-html>In channel permissions, <strong>add your 4 bots</strong>:
+			                <ul>
+			                    <li data-i18n="wizard.step4_relay_perm1">✅ View Channel</li>
+			                    <li data-i18n="wizard.step4_relay_perm2">✅ Read Message History</li>
+			                    <li data-i18n="wizard.step4_relay_perm3">✅ Send Messages</li>
+			                    <li data-i18n="wizard.step4_relay_perm4">✅ Manage Messages (to delete commands)</li>
+			                </ul>
+			            </li>
+			            <li data-i18n="wizard.step4_relay_instr3" data-i18n-html>Right-click on the channel → <strong>"Copy ID"</strong></li>
+			        </ol>
+			    </div>
+			    
+			    <div class="form-group">
+			        <label data-i18n="wizard.relayChannelID">📡 Relay Channel ID (text)</label>
+			        <div style="position: relative;">
+			            <input 
+			                type="text" 
+			                id="wizard-channel-relay-search" 
+			                list="wizard-channels-list-relay"
+			                placeholder="Search text channel or paste ID"
+			                autocomplete="off"
+			                style="width: 100%;">
+			            <datalist id="wizard-channels-list-relay"></datalist>
+			            <input type="hidden" id="wizard-channel-relay">
+			            <div id="wizard-selected-channel-relay" class="selected-item" style="display: none;">
+			                Selected: <strong id="wizard-selected-channel-name-relay"></strong> 
+			                (<code id="wizard-selected-channel-id-relay"></code>)
+			            </div>
+			        </div>
+			    </div>
+			    
+			    <div class="wizard-instructions" style="margin-top: 15px;">
+			        <h4 data-i18n="wizard.step4_webhook_title">🔗 Create the Webhook:</h4>
+			        <ol>
+			            <li data-i18n="wizard.step4_webhook_instr1" data-i18n-html><strong>Server Settings</strong> (click on server name)</li>
+			            <li data-i18n="wizard.step4_webhook_instr2" data-i18n-html><strong>"Integrations"</strong> tab</li>
+			            <li data-i18n="wizard.step4_webhook_instr3" data-i18n-html>Click <strong>"Webhooks"</strong> → <strong>"New Webhook"</strong></li>
+			            <li data-i18n="wizard.step4_webhook_instr4" data-i18n-html>Select the <strong>relay channel</strong> created previously</li>
+			            <li data-i18n="wizard.step4_webhook_instr5" data-i18n-html>Click <strong>"Copy Webhook URL"</strong></li>
+			        </ol>
+			    </div>
+			    
+			    <div class="form-group">
+			        <label data-i18n="wizard.webhookURL">🔗 Webhook URL</label>
+			        <input type="text" id="wizard-webhook-relay" placeholder="https://discord.com/api/webhooks/...">
+			    </div>
+			    
+			    <p class="wizard-note" data-i18n="wizard.step4_note">⚠️ Without this configuration, Whisper won't work!</p>
+			    
+			    <button class="btn" onclick="wizardStep('cmd-3')" data-i18n="wizard.back">← Back</button>
+			    <button class="btn btn-primary" onclick="wizardValidateStep4()" data-i18n="wizard.finish">Finish ✓</button>
+			</div>
 
             <!-- CHIEF FLOW -->
             <!-- Step 1: Import Config -->

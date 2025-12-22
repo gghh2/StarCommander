@@ -878,6 +878,66 @@ class RelayManager {
             return [];
         }
     }
+
+    // Get all voice AND text channels from guild (for Bots configuration)
+    async getGuildChannels() {
+        const client = EmitterBot.getClient();
+        if (!client || !client.guilds) {
+            console.log('[RelayManager] No client or guilds available');
+            return { voice: [], text: [] };
+        }
+        
+        try {
+            // Get all guilds the bot is in
+            const guilds = client.guilds.cache;
+            if (guilds.size === 0) {
+                console.log('[RelayManager] No guilds found');
+                return { voice: [], text: [] };
+            }
+            
+            // Use the first guild
+            const guild = guilds.first();
+            console.log(`[RelayManager] Fetching channels from guild: ${guild.name}`);
+            
+            // Fetch all channels
+            await guild.channels.fetch();
+            
+            // Filter VOICE channels (type 2)
+            const voiceChannels = guild.channels.cache
+                .filter(channel => channel.type === 2)
+                .map(channel => ({
+                    id: channel.id,
+                    name: channel.name,
+                    type: 'voice',
+                    position: channel.position,
+                    parentId: channel.parentId,
+                    parentName: channel.parent ? channel.parent.name : null
+                }))
+                .sort((a, b) => a.position - b.position);
+            
+            // Filter TEXT channels (type 0)
+            const textChannels = guild.channels.cache
+                .filter(channel => channel.type === 0)
+                .map(channel => ({
+                    id: channel.id,
+                    name: channel.name,
+                    type: 'text',
+                    position: channel.position,
+                    parentId: channel.parentId,
+                    parentName: channel.parent ? channel.parent.name : null
+                }))
+                .sort((a, b) => a.position - b.position);
+            
+            console.log(`[RelayManager] Voice channels found: ${voiceChannels.length}`);
+            console.log(`[RelayManager] Text channels found: ${textChannels.length}`);
+            
+            return { voice: voiceChannels, text: textChannels };
+        } catch (error) {
+            console.error('[RelayManager] Error fetching guild channels:', error);
+            return { voice: [], text: [] };
+        }
+    }    
+
 }
 
 module.exports = RelayManager;

@@ -173,8 +173,25 @@ async function loadConfig() {
     // Target channels
     if (config.channels?.targets) {
         config.channels.targets.forEach((target, i) => {
+            // Fill hidden input
             const idInput = document.getElementById(`target${i+1}-id`);
             if (idInput) idInput.value = target.id || '';
+            
+            // Fill visible search input
+            const searchInput = document.getElementById(`target${i+1}-search`);
+            if (searchInput && target.id) {
+                searchInput.value = target.id;
+            }
+            
+            // Show selected channel info
+            const selectedDiv = document.getElementById(`selected-channel-${i+1}`);
+            const selectedName = document.getElementById(`selected-channel-name-${i+1}`);
+            const selectedId = document.getElementById(`selected-channel-id-${i+1}`);
+            if (selectedDiv && selectedName && selectedId && target.id) {
+                selectedDiv.style.display = 'block';
+                selectedName.textContent = target.name || 'Configured';
+                selectedId.textContent = target.id;
+            }
             
             // Update channel button names
             const nameSpan = document.getElementById(`channel${i+1}-name`);
@@ -183,7 +200,57 @@ async function loadConfig() {
             }
         });
     }
-    
+
+    // Source channel (Commandants)
+    if (config.channels?.source?.id) {
+        // Fill hidden input
+        const sourceInput = document.getElementById('channel-source');
+        if (sourceInput) {
+            sourceInput.value = config.channels.source.id;
+        }
+        
+        // Fill visible search input
+        const sourceSearchInput = document.getElementById('channel-source-search');
+        if (sourceSearchInput) {
+            sourceSearchInput.value = config.channels.source.id;
+        }
+        
+        // Show selected channel info
+        const selectedDiv = document.getElementById('selected-channel-source');
+        const selectedName = document.getElementById('selected-channel-name-source');
+        const selectedId = document.getElementById('selected-channel-id-source');
+        if (selectedDiv && selectedName && selectedId) {
+            selectedDiv.style.display = 'block';
+            selectedName.textContent = config.channels.source.name || 'Commandants';
+            selectedId.textContent = config.channels.source.id;
+        }
+    }
+
+    // Relay channel (text)
+    if (config.channels?.relay?.id) {
+        // Fill hidden input
+        const relayInput = document.getElementById('channel-relay');
+        if (relayInput) {
+            relayInput.value = config.channels.relay.id;
+        }
+        
+        // Fill visible search input
+        const relaySearchInput = document.getElementById('channel-relay-search');
+        if (relaySearchInput) {
+            relaySearchInput.value = config.channels.relay.id;
+        }
+        
+        // Show selected channel info
+        const selectedDiv = document.getElementById('selected-channel-relay');
+        const selectedName = document.getElementById('selected-channel-name-relay');
+        const selectedId = document.getElementById('selected-channel-id-relay');
+        if (selectedDiv && selectedName && selectedId) {
+            selectedDiv.style.display = 'block';
+            selectedName.textContent = 'Relay Channel';
+            selectedId.textContent = config.channels.relay.id;
+        }
+    }
+        
     // Chiefs
     renderChiefs(config.chiefs || []);
     updateChiefChannelOptions();
@@ -240,6 +307,11 @@ async function loadConfig() {
     
     // Load theme
     loadTheme(config.theme);
+
+
+    // Update button visibility after loading config
+    updateLoadMembersButtonVisibility();
+    updateLoadChannelsButtonVisibility();
 }
 
 // Load theme colors
@@ -346,7 +418,38 @@ function setupEventListeners() {
         chiefSearchInput.onchange = selectChiefFromAutocomplete;
     }
     document.getElementById('btn-add-chief').onclick = addChief;
-    
+
+
+    // Load Discord channels button
+    const btnLoadChannels = document.getElementById('btn-load-channels');
+    if (btnLoadChannels) {
+        btnLoadChannels.onclick = loadDiscordChannels;
+    }
+
+    // Channel search inputs with autocomplete
+    for (let i = 1; i <= 3; i++) {
+        const searchInput = document.getElementById(`target${i}-search`);
+        if (searchInput) {
+            searchInput.oninput = () => handleChannelSearch(i);
+            searchInput.onchange = () => selectChannelFromAutocomplete(i);
+        }
+    }
+
+    // Source channel search
+    const sourceSearchInput = document.getElementById('channel-source-search');
+    if (sourceSearchInput) {
+        sourceSearchInput.oninput = () => handleChannelSearch('source');
+        sourceSearchInput.onchange = () => selectChannelFromAutocomplete('source');
+    }
+
+    // Relay channel search (text channel)
+    const relaySearchInput = document.getElementById('channel-relay-search');
+    if (relaySearchInput) {
+        relaySearchInput.oninput = () => handleChannelSearch('relay');
+        relaySearchInput.onchange = () => selectChannelFromAutocomplete('relay');
+    }
+        
+
     // Reset keybinds button
     const btnResetKeybinds = document.getElementById('btn-reset-keybinds');
     if (btnResetKeybinds) btnResetKeybinds.onclick = resetKeybinds;
@@ -387,6 +490,35 @@ function setupEventListeners() {
         appMode = 'chief';
         wizardStep('chief-1');
     };
+
+    // Wizard: Load channels button
+    const wizardBtnLoadChannels = document.getElementById('wizard-btn-load-channels');
+    if (wizardBtnLoadChannels) {
+        wizardBtnLoadChannels.onclick = loadWizardChannels;
+    }
+
+    // Wizard: Channel search inputs
+    for (let i = 1; i <= 3; i++) {
+        const searchInput = document.getElementById(`wizard-target${i}-search`);
+        if (searchInput) {
+            searchInput.oninput = () => handleWizardChannelSearch(i);
+            searchInput.onchange = () => selectWizardChannelFromAutocomplete(i);
+        }
+    }
+
+    // Wizard: Source channel search
+    const wizardSourceSearch = document.getElementById('wizard-channel-source-search');
+    if (wizardSourceSearch) {
+        wizardSourceSearch.oninput = () => handleWizardChannelSearch('source');
+        wizardSourceSearch.onchange = () => selectWizardChannelFromAutocomplete('source');
+    }
+
+    // Wizard: Relay channel search
+    const wizardRelaySearch = document.getElementById('wizard-channel-relay-search');
+    if (wizardRelaySearch) {
+        wizardRelaySearch.oninput = () => handleWizardChannelSearch('relay');
+        wizardRelaySearch.onchange = () => selectWizardChannelFromAutocomplete('relay');
+    }
     
     // Commandant: existing config or new?
     document.getElementById('btn-cmd-import').onclick = () => {
@@ -548,9 +680,11 @@ function setRunningState(running) {
         document.getElementById('receiver3-status').classList.remove('connected');
     }
     
-    // ✅ AJOUTER CETTE LIGNE ICI (après le if/else)
     // Update load members button visibility
     updateLoadMembersButtonVisibility();
+
+    // Update load chanels button visibility
+    updateLoadChannelsButtonVisibility();
 }
 
 // Set target channel
@@ -849,11 +983,11 @@ async function saveBots() {
         names: names
     });
     
-    // Build targets
+    // Build targets - USE HIDDEN INPUTS
     const targets = [];
     for (let i = 1; i <= 3; i++) {
         const name = names[`receiver${i}`];
-        const id = document.getElementById(`target${i}-id`).value;
+        const id = document.getElementById(`target${i}-id`).value; // ← Hidden input
         if (name && id) {
             targets.push({ name, id, tokenKey: `receiver${i}` });
         }
@@ -861,7 +995,7 @@ async function saveBots() {
     
     await window.api.config.set('channels', {
         source: {
-            id: document.getElementById('channel-source').value,
+            id: document.getElementById('channel-source').value, // ← Hidden input
             name: 'Commandants'
         },
         targets,
@@ -881,6 +1015,10 @@ async function saveBots() {
         if (nameSpan) nameSpan.textContent = target.name;
     });
     
+
+    updateLoadMembersButtonVisibility();
+    updateLoadChannelsButtonVisibility();
+
     updateChiefChannelOptions();
     addLog('Bots configuration saved', 'success');
 }
@@ -1332,53 +1470,74 @@ function wizardValidateStep2() {
     wizardStep('cmd-3');
 }
 
+// Validate wizard step 3 (channels)
 function wizardValidateStep3() {
-    const source = document.getElementById('wizard-channel-source').value.trim();
-    const target1Name = document.getElementById('wizard-target1-name').value.trim();
-    const target1Id = document.getElementById('wizard-target1-id').value.trim();
+    const sourceId = document.getElementById('wizard-channel-source').value; // ← Hidden input
+    const target1Name = document.getElementById('wizard-target1-name').value;
+    const target1Id = document.getElementById('wizard-target1-id').value; // ← Hidden input
+    const target2Name = document.getElementById('wizard-target2-name').value;
+    const target2Id = document.getElementById('wizard-target2-id').value; // ← Hidden input
+    const target3Name = document.getElementById('wizard-target3-name').value;
+    const target3Id = document.getElementById('wizard-target3-id').value; // ← Hidden input
     
-    if (!source) {
-        alert('⚠️ Le Channel Source (Commandants) est obligatoire');
-        document.getElementById('wizard-channel-source').focus();
-        return;
-    }
-    
-    if (!target1Name || !target1Id) {
-        alert('⚠️ Au moins le Target 1 (nom + ID) est obligatoire');
-        if (!target1Name) {
-            document.getElementById('wizard-target1-name').focus();
-        } else {
-            document.getElementById('wizard-target1-id').focus();
-        }
+    if (!sourceId || !target1Name || !target1Id || !target2Name || !target2Id || !target3Name || !target3Id) {
+        alert('Please fill all channel fields');
         return;
     }
     
     wizardStep('cmd-4');
 }
 
-function wizardValidateStep4() {
-    const relayId = document.getElementById('wizard-channel-relay').value.trim();
-    const webhookUrl = document.getElementById('wizard-webhook-relay').value.trim();
+// Validate wizard step 4 (relay)
+async function wizardValidateStep4() {
+    const relayId = document.getElementById('wizard-channel-relay').value; // ← Hidden input
+    const webhookUrl = document.getElementById('wizard-webhook-relay').value;
     
-    if (!relayId) {
-        alert('⚠️ Le Channel Relay ID est obligatoire pour le Whisper');
-        document.getElementById('wizard-channel-relay').focus();
+    if (!relayId || !webhookUrl) {
+        alert('Please fill both relay channel and webhook URL');
         return;
     }
     
-    if (!webhookUrl) {
-        alert('⚠️ Le Webhook URL est obligatoire pour le Whisper');
-        document.getElementById('wizard-webhook-relay').focus();
-        return;
-    }
+    // Save all config
+    const tokens = {
+        emitter: document.getElementById('wizard-token-emitter').value,
+        receivers: {
+            receiver1: document.getElementById('wizard-token-receiver1').value,
+            receiver2: document.getElementById('wizard-token-receiver2').value,
+            receiver3: document.getElementById('wizard-token-receiver3').value
+        },
+        names: {
+            receiver1: document.getElementById('wizard-target1-name').value,
+            receiver2: document.getElementById('wizard-target2-name').value,
+            receiver3: document.getElementById('wizard-target3-name').value
+        }
+    };
     
-    if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
-        alert('⚠️ Le Webhook URL doit commencer par https://discord.com/api/webhooks/');
-        document.getElementById('wizard-webhook-relay').focus();
-        return;
-    }
+    const channels = {
+        source: {
+            id: document.getElementById('wizard-channel-source').value, // ← Hidden input
+            name: 'Commandants'
+        },
+        targets: [
+            { name: tokens.names.receiver1, id: document.getElementById('wizard-target1-id').value, tokenKey: 'receiver1' }, // ← Hidden
+            { name: tokens.names.receiver2, id: document.getElementById('wizard-target2-id').value, tokenKey: 'receiver2' }, // ← Hidden
+            { name: tokens.names.receiver3, id: document.getElementById('wizard-target3-id').value, tokenKey: 'receiver3' }  // ← Hidden
+        ],
+        relay: {
+            id: relayId,
+            webhookUrl: webhookUrl
+        }
+    };
     
-    wizardFinishCommandant();
+    await window.api.config.set('firstSetup', true);
+    await window.api.config.set('mode', 'commandant');
+    await window.api.config.set('tokens', tokens);
+    await window.api.config.set('channels', channels);
+    
+    // Close wizard
+    document.getElementById('wizard-overlay').style.display = 'none';
+    await loadConfig();
+    addLog('✅ Configuration complete! You can now start the relay.', 'success');
 }
 
 // Wizard finish - Commandant
@@ -1503,7 +1662,12 @@ async function resetConfig() {
 
 // Global members cache
 let discordMembers = [];
+let discordChannels = { voice: [], text: [] };
 
+
+// ========================================
+// DISCORD members AUTOCOMPLETE
+// ========================================
 // Load Discord members from relay
 async function loadDiscordMembers() {
     const btnLoadMembers = document.getElementById('btn-load-members');
@@ -1626,15 +1790,402 @@ function selectChiefFromAutocomplete(e) {
     }
 }
 
-// Update load members button visibility based on relay state
+// Update load members button visibility
 function updateLoadMembersButtonVisibility() {
     const btnLoadMembers = document.getElementById('btn-load-members');
     if (btnLoadMembers && appMode === 'commandant') {
-        btnLoadMembers.style.display = isRunning ? 'block' : 'none';
+        // Show if we have an emitter token configured (even if not running)
+        const emitterToken = document.getElementById('token-emitter')?.value;
+        btnLoadMembers.style.display = emitterToken ? 'block' : 'none';
     }
 }
 
 
+// ========================================
+// DISCORD CHANNELS AUTOCOMPLETE
+// ========================================
+
+// Load Discord channels from relay
+async function loadDiscordChannels() {
+    const btnLoadChannels = document.getElementById('btn-load-channels');
+    const loadText = document.getElementById('load-channels-text');
+    
+    if (!btnLoadChannels || !loadText) return;
+    
+    // Show loading state
+    btnLoadChannels.disabled = true;
+    loadText.textContent = '⏳ Loading...';
+    
+    try {
+        const result = await window.api.getGuildChannels();
+        
+        if (result.success && result.channels) {
+            discordChannels = result.channels; // Now contains {voice: [], text: []}
+            populateChannelsList();
+            const totalChannels = discordChannels.voice.length + discordChannels.text.length;
+            addLog(`✅ Loaded ${discordChannels.voice.length} voice + ${discordChannels.text.length} text channels`, 'success');
+            loadText.textContent = `✅ ${totalChannels} channels loaded`;
+        } else {
+            addLog(`❌ Failed to load channels: ${result.error || 'Unknown error'}`, 'error');
+            loadText.textContent = '❌ Failed - Start relay first';
+        }
+    } catch (error) {
+        console.error('Error loading channels:', error);
+        addLog(`❌ Error: ${error.message}`, 'error');
+        loadText.textContent = '❌ Error loading channels';
+    }
+    
+    btnLoadChannels.disabled = false;
+    
+    // Reset text after 3 seconds
+    setTimeout(() => {
+        loadText.textContent = '🔄 Reload Discord Channels';
+    }, 3000);
+}
+
+// Populate all datalists with channels
+function populateChannelsList() {
+    // Voice channels datalists
+    const voiceDatalistIds = ['channels-list-1', 'channels-list-2', 'channels-list-3', 'channels-list-source'];
+    
+    voiceDatalistIds.forEach(listId => {
+        const datalist = document.getElementById(listId);
+        if (!datalist) return;
+        
+        datalist.innerHTML = '';
+        
+        discordChannels.voice.forEach(channel => {
+            const option = document.createElement('option');
+            const displayName = channel.parentName 
+                ? `${channel.name} (${channel.parentName})` 
+                : channel.name;
+            option.value = displayName;
+            option.dataset.channelId = channel.id;
+            option.dataset.channelName = channel.name;
+            datalist.appendChild(option);
+        });
+    });
+    
+    // Text channels datalist (for relay)
+    const textDatalist = document.getElementById('channels-list-relay');
+    if (textDatalist) {
+        textDatalist.innerHTML = '';
+        
+        discordChannels.text.forEach(channel => {
+            const option = document.createElement('option');
+            const displayName = channel.parentName 
+                ? `#${channel.name} (${channel.parentName})` 
+                : `#${channel.name}`;
+            option.value = displayName;
+            option.dataset.channelId = channel.id;
+            option.dataset.channelName = channel.name;
+            textDatalist.appendChild(option);  // ← ✅ CORRIGÉ !
+        });
+    }
+}
+
+// Handle channel search input
+function handleChannelSearch(targetNumber) {
+    const isSource = targetNumber === 'source';
+    const isRelay = targetNumber === 'relay';
+    
+    let searchInput, selectedDiv, hiddenInput;
+    
+    if (isRelay) {
+        searchInput = document.getElementById('channel-relay-search');
+        selectedDiv = document.getElementById('selected-channel-relay');
+        hiddenInput = document.getElementById('channel-relay');
+    } else if (isSource) {
+        searchInput = document.getElementById('channel-source-search');
+        selectedDiv = document.getElementById('selected-channel-source');
+        hiddenInput = document.getElementById('channel-source');
+    } else {
+        searchInput = document.getElementById(`target${targetNumber}-search`);
+        selectedDiv = document.getElementById(`selected-channel-${targetNumber}`);
+        hiddenInput = document.getElementById(`target${targetNumber}-id`);
+    }
+    
+    if (!searchInput) return;
+    
+    // Clear selection if user modifies the input
+    if (selectedDiv) selectedDiv.style.display = 'none';
+    if (hiddenInput) hiddenInput.value = '';
+}
+
+// Select channel from autocomplete
+function selectChannelFromAutocomplete(targetNumber) {
+    const isSource = targetNumber === 'source';
+    const isRelay = targetNumber === 'relay';
+    
+    let searchInput, searchValue, datalist, selectedDiv, selectedName, selectedId, hiddenInput;
+    
+    if (isRelay) {
+        searchInput = document.getElementById('channel-relay-search');
+        datalist = document.getElementById('channels-list-relay');
+        selectedDiv = document.getElementById('selected-channel-relay');
+        selectedName = document.getElementById('selected-channel-name-relay');
+        selectedId = document.getElementById('selected-channel-id-relay');
+        hiddenInput = document.getElementById('channel-relay');
+    } else if (isSource) {
+        searchInput = document.getElementById('channel-source-search');
+        datalist = document.getElementById('channels-list-source');
+        selectedDiv = document.getElementById('selected-channel-source');
+        selectedName = document.getElementById('selected-channel-name-source');
+        selectedId = document.getElementById('selected-channel-id-source');
+        hiddenInput = document.getElementById('channel-source');
+    } else {
+        searchInput = document.getElementById(`target${targetNumber}-search`);
+        datalist = document.getElementById(`channels-list-${targetNumber}`);
+        selectedDiv = document.getElementById(`selected-channel-${targetNumber}`);
+        selectedName = document.getElementById(`selected-channel-name-${targetNumber}`);
+        selectedId = document.getElementById(`selected-channel-id-${targetNumber}`);
+        hiddenInput = document.getElementById(`target${targetNumber}-id`);
+    }
+    
+    searchValue = searchInput ? searchInput.value.trim() : '';
+    
+    if (!datalist) return;
+    
+    // Check if user pasted a Discord ID directly (18-19 digits)
+    const discordIdRegex = /^\d{17,19}$/;
+    if (discordIdRegex.test(searchValue)) {
+        // User pasted an ID directly
+        if (hiddenInput) hiddenInput.value = searchValue;
+        if (selectedDiv && selectedName && selectedId) {
+            selectedDiv.style.display = 'block';
+            selectedName.textContent = 'Direct ID';
+            selectedId.textContent = searchValue;
+        }
+        return;
+    }
+    
+    // Find matching option in datalist
+    const options = datalist.querySelectorAll('option');
+    let matchedOption = null;
+    
+    for (const option of options) {
+        if (option.value === searchValue) {
+            matchedOption = option;
+            break;
+        }
+    }
+    
+    if (matchedOption) {
+        const channelId = matchedOption.dataset.channelId;
+        const channelName = matchedOption.dataset.channelName;
+        
+        // Fill hidden input with channel ID
+        if (hiddenInput) hiddenInput.value = channelId;
+        
+        // Show selected channel info
+        if (selectedDiv && selectedName && selectedId) {
+            selectedDiv.style.display = 'block';
+            selectedName.textContent = channelName;
+            selectedId.textContent = channelId;
+        }
+    }
+}
+
+// Update load channels button visibility
+function updateLoadChannelsButtonVisibility() {
+    const btnLoadChannels = document.getElementById('btn-load-channels');
+    if (btnLoadChannels && appMode === 'commandant') {
+        // Show if we have an emitter token configured (even if not running)
+        const emitterToken = document.getElementById('token-emitter')?.value;
+        btnLoadChannels.style.display = emitterToken ? 'block' : 'none';
+    }
+}
+
+// ========================================
+// WIZARD CHANNELS AUTOCOMPLETE
+// ========================================
+
+// Load channels during wizard setup
+async function loadWizardChannels() {
+    const btnLoadChannels = document.getElementById('wizard-btn-load-channels');
+    const loadText = document.getElementById('wizard-load-channels-text');
+    
+    if (!btnLoadChannels || !loadText) return;
+    
+    // Get emitter token from wizard
+    const emitterToken = document.getElementById('wizard-token-emitter')?.value;
+    
+    if (!emitterToken) {
+        alert('Please enter the Emitter token first (Step 2)');
+        wizardStep('cmd-2');
+        return;
+    }
+    
+    // Show loading state
+    btnLoadChannels.disabled = true;
+    loadText.textContent = '⏳ Connecting...';
+    
+    try {
+        // Pass the token directly to the API
+        const result = await window.api.getGuildChannels(emitterToken); // ← Passe le token !
+        
+        if (result.success && result.channels) {
+            discordChannels = result.channels;
+            populateWizardChannelsList();
+            const totalChannels = discordChannels.voice.length + discordChannels.text.length;
+            loadText.textContent = `✅ ${totalChannels} channels loaded`;
+        } else {
+            alert(`Failed to load channels: ${result.error || 'Unknown error'}`);
+            loadText.textContent = '❌ Failed to load';
+        }
+    } catch (error) {
+        console.error('Error loading wizard channels:', error);
+        alert(`Error: ${error.message}`);
+        loadText.textContent = '❌ Error';
+    }
+    
+    btnLoadChannels.disabled = false;
+    
+    // Reset text after 3 seconds
+    setTimeout(() => {
+        loadText.textContent = '🔄 Load Discord Channels';
+    }, 3000);
+}
+
+// Populate wizard datalists with channels
+function populateWizardChannelsList() {
+    // Voice channels
+    const voiceDatalistIds = ['wizard-channels-list-1', 'wizard-channels-list-2', 'wizard-channels-list-3', 'wizard-channels-list-source'];
+    
+    voiceDatalistIds.forEach(listId => {
+        const datalist = document.getElementById(listId);
+        if (!datalist) return;
+        
+        datalist.innerHTML = '';
+        
+        discordChannels.voice.forEach(channel => {
+            const option = document.createElement('option');
+            const displayName = channel.parentName 
+                ? `${channel.name} (${channel.parentName})` 
+                : channel.name;
+            option.value = displayName;
+            option.dataset.channelId = channel.id;
+            option.dataset.channelName = channel.name;
+            datalist.appendChild(option);
+        });
+    });
+    
+    // Text channels
+    const textDatalist = document.getElementById('wizard-channels-list-relay');
+    if (textDatalist) {
+        textDatalist.innerHTML = '';
+        
+        discordChannels.text.forEach(channel => {
+            const option = document.createElement('option');
+            const displayName = channel.parentName 
+                ? `#${channel.name} (${channel.parentName})` 
+                : `#${channel.name}`;
+            option.value = displayName;
+            option.dataset.channelId = channel.id;
+            option.dataset.channelName = channel.name;
+            textDatalist.appendChild(option);
+        });
+    }
+}
+
+// Handle wizard channel search
+function handleWizardChannelSearch(targetNumber) {
+    const isSource = targetNumber === 'source';
+    const isRelay = targetNumber === 'relay';
+    
+    let searchInput, selectedDiv, hiddenInput;
+    
+    if (isRelay) {
+        searchInput = document.getElementById('wizard-channel-relay-search');
+        selectedDiv = document.getElementById('wizard-selected-channel-relay');
+        hiddenInput = document.getElementById('wizard-channel-relay');
+    } else if (isSource) {
+        searchInput = document.getElementById('wizard-channel-source-search');
+        selectedDiv = document.getElementById('wizard-selected-channel-source');
+        hiddenInput = document.getElementById('wizard-channel-source');
+    } else {
+        searchInput = document.getElementById(`wizard-target${targetNumber}-search`);
+        selectedDiv = document.getElementById(`wizard-selected-channel-${targetNumber}`);
+        hiddenInput = document.getElementById(`wizard-target${targetNumber}-id`);
+    }
+    
+    if (!searchInput) return;
+    
+    // Clear selection
+    if (selectedDiv) selectedDiv.style.display = 'none';
+    if (hiddenInput) hiddenInput.value = '';
+}
+
+// Select wizard channel from autocomplete
+function selectWizardChannelFromAutocomplete(targetNumber) {
+    const isSource = targetNumber === 'source';
+    const isRelay = targetNumber === 'relay';
+    
+    let searchInput, datalist, selectedDiv, selectedName, selectedId, hiddenInput;
+    
+    if (isRelay) {
+        searchInput = document.getElementById('wizard-channel-relay-search');
+        datalist = document.getElementById('wizard-channels-list-relay');
+        selectedDiv = document.getElementById('wizard-selected-channel-relay');
+        selectedName = document.getElementById('wizard-selected-channel-name-relay');
+        selectedId = document.getElementById('wizard-selected-channel-id-relay');
+        hiddenInput = document.getElementById('wizard-channel-relay');
+    } else if (isSource) {
+        searchInput = document.getElementById('wizard-channel-source-search');
+        datalist = document.getElementById('wizard-channels-list-source');
+        selectedDiv = document.getElementById('wizard-selected-channel-source');
+        selectedName = document.getElementById('wizard-selected-channel-name-source');
+        selectedId = document.getElementById('wizard-selected-channel-id-source');
+        hiddenInput = document.getElementById('wizard-channel-source');
+    } else {
+        searchInput = document.getElementById(`wizard-target${targetNumber}-search`);
+        datalist = document.getElementById(`wizard-channels-list-${targetNumber}`);
+        selectedDiv = document.getElementById(`wizard-selected-channel-${targetNumber}`);
+        selectedName = document.getElementById(`wizard-selected-channel-name-${targetNumber}`);
+        selectedId = document.getElementById(`wizard-selected-channel-id-${targetNumber}`);
+        hiddenInput = document.getElementById(`wizard-target${targetNumber}-id`);
+    }
+    
+    const searchValue = searchInput ? searchInput.value.trim() : '';
+    
+    if (!datalist) return;
+    
+    // Check if user pasted ID directly
+    const discordIdRegex = /^\d{17,19}$/;
+    if (discordIdRegex.test(searchValue)) {
+        if (hiddenInput) hiddenInput.value = searchValue;
+        if (selectedDiv && selectedName && selectedId) {
+            selectedDiv.style.display = 'block';
+            selectedName.textContent = 'Direct ID';
+            selectedId.textContent = searchValue;
+        }
+        return;
+    }
+    
+    // Find matching option
+    const options = datalist.querySelectorAll('option');
+    let matchedOption = null;
+    
+    for (const option of options) {
+        if (option.value === searchValue) {
+            matchedOption = option;
+            break;
+        }
+    }
+    
+    if (matchedOption) {
+        const channelId = matchedOption.dataset.channelId;
+        const channelName = matchedOption.dataset.channelName;
+        
+        if (hiddenInput) hiddenInput.value = channelId;
+        
+        if (selectedDiv && selectedName && selectedId) {
+            selectedDiv.style.display = 'block';
+            selectedName.textContent = channelName;
+            selectedId.textContent = channelId;
+        }
+    }
+}
 
 
 

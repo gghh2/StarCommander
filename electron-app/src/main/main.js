@@ -6,6 +6,8 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, shell, screen } = require('electron');
 const path = require('path');
 const { uIOhook, UiohookKey } = require('uiohook-napi');
+const tempConnection = require('../core/tempConnection');
+
 
 // Detect dev mode and separate config paths
 const isDev = !app.isPackaged;
@@ -668,21 +670,98 @@ function setupIPC() {
         
         return { success: false };
     });
-    
-    // Get Discord guild members
-    ipcMain.handle('get-guild-members', async () => {
-        if (!relayManager) {
-            return { success: false, members: [], error: 'Relay not started' };
-        }
-        
-        try {
-            const members = await relayManager.getGuildMembers();
-            return { success: true, members };
-        } catch (error) {
-            console.error('[Main] Error getting guild members:', error);
-            return { success: false, members: [], error: error.message };
-        }
-    });
+
+	// Get Discord guild members (with temp connection if needed)
+	ipcMain.handle('get-guild-members', async (event, providedToken) => {
+	    // Try with running relay first
+	    if (relayManager && !providedToken) {
+	        try {
+	            const members = await relayManager.getGuildMembers();
+	            return { success: true, members };
+	        } catch (error) {
+	            console.log('[Main] Relay not ready, trying temp connection...');
+	        }
+	    }
+	    
+	    // Use temp connection
+	    try {
+	        // Use provided token (from wizard) or get from config
+	        let emitterToken = providedToken;
+	        
+	        if (!emitterToken) {
+	            const config = store.get();
+	            emitterToken = config.tokens?.emitter;
+	        }
+	        
+	        if (!emitterToken) {
+	            return { success: false, members: [], error: 'Emitter token not configured' };
+	        }
+	        
+	        console.log('[Main] Using temp connection with provided token');
+	        
+	        // Connect temporarily if not already connected
+	        if (!tempConnection.isConnected()) {
+	            await tempConnection.connectTemp(emitterToken);
+	        }
+	        
+	        const members = await tempConnection.getGuildMembers();
+	        
+	        // Disconnect after fetching
+	        await tempConnection.disconnectTemp();
+	        
+	        return { success: true, members };
+	    } catch (error) {
+	        console.error('[Main] Error getting guild members:', error);
+	        await tempConnection.disconnectTemp(); // Cleanup on error
+	        return { success: false, members: [], error: error.message };
+	    }
+	});
+
+	// Get Discord guild channels (with temp connection if needed)
+	ipcMain.handle('get-guild-channels', async (event, providedToken) => {
+	    // Try with running relay first
+	    if (relayManager && !providedToken) {
+	        try {
+	            const channels = await relayManager.getGuildChannels();
+	            return { success: true, channels };
+	        } catch (error) {
+	            console.log('[Main] Relay not ready, trying temp connection...');
+	        }
+	    }
+	    
+	    // Use temp connection
+	    try {
+	        // Use provided token (from wizard) or get from config
+	        let emitterToken = providedToken;
+	        
+	        if (!emitterToken) {
+	            const config = store.get();
+	            emitterToken = config.tokens?.emitter;
+	        }
+	        
+	        if (!emitterToken) {
+	            return { success: false, channels: { voice: [], text: [] }, error: 'Emitter token not configured' };
+	        }
+	        
+	        console.log('[Main] Using temp connection with provided token');
+	        
+	        // Connect temporarily if not already connected
+	        if (!tempConnection.isConnected()) {
+	            await tempConnection.connectTemp(emitterToken);
+	        }
+	        
+	        const channels = await tempConnection.getGuildChannels();
+	        
+	        // Disconnect after fetching
+	        await tempConnection.disconnectTemp();
+	        
+	        return { success: true, channels };
+	    } catch (error) {
+	        console.error('[Main] Error getting guild channels:', error);
+	        await tempConnection.disconnectTemp(); // Cleanup on error
+	        return { success: false, channels: { voice: [], text: [] }, error: error.message };
+	    }
+	});
     
     // Import theme
     ipcMain.handle('import-theme', async () => {
