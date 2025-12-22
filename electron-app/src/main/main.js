@@ -3,7 +3,7 @@
  * V4.0
  */
 
-const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, shell, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { uIOhook, UiohookKey } = require('uiohook-napi');
 const tempConnection = require('../core/tempConnection');
@@ -68,6 +68,9 @@ let currentChannel = 'MUTE';
 let uiohookStarted = false;
 let registeredKeys = new Map(); // Map de keycode -> target
 
+app.isQuitting = false;
+
+
 // Cleanup relay before closing
 async function cleanupBeforeClose() {
     if (isCleaningUp) return;
@@ -96,12 +99,12 @@ function createWindow() {
         resizable: true,
         maximizable: false,
         frame: false,
+        icon: path.join(__dirname, '../../assets/icon.ico'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false
         },
-        icon: path.join(__dirname, '../../assets/icon.png'),
         show: false
     });
 
@@ -122,13 +125,23 @@ function createWindow() {
         }
     });
 
-    // Handle close button - always quit and cleanup
-    mainWindow.on('close', async (event) => {
-        if (!isCleaningUp && relayManager) {
+    // Prevent closing, minimize to tray instead
+    mainWindow.on('close', (event) => {
+        if (!app.isQuitting) {
             event.preventDefault();
-            await cleanupBeforeClose();
-            app.quit();
+            mainWindow.hide();
+            
+            // Show notification first time
+            if (!tray.notificationShown) {
+                tray.displayBalloon({
+                    title: 'Star Commander',
+                    content: 'App minimized to system tray. Double-click tray icon to restore.',
+                    icon: path.join(__dirname, '../../assets/icon.ico')
+                });
+                tray.notificationShown = true;
+            }
         }
+        return false;
     });
 
     if (process.argv.includes('--dev')) {
@@ -152,6 +165,7 @@ function createOverlay() {
         alwaysOnTop: true,
         skipTaskbar: true,
         focusable: false,
+        icon: path.join(__dirname, '../../assets/icon.ico'),
         webPreferences: {
             preload: path.join(__dirname, 'preload-overlay.js'),
             contextIsolation: true,
@@ -203,39 +217,82 @@ function updateOverlay(channelName) {
     }
 }
 
-// Create system tray
 function createTray() {
-    try {
-        const iconPath = path.join(__dirname, '../../assets/icon.png');
-        tray = new Tray(iconPath);
-        
-        const contextMenu = Menu.buildFromTemplate([
-            { label: 'Show', click: () => mainWindow.show() },
-            { type: 'separator' },
-            { label: 'Toggle Overlay', click: () => {
-                const current = store.get('settings.overlayEnabled');
-                toggleOverlay(!current);
-                mainWindow.webContents.send('relay-event', { 
-                    event: 'overlay-toggled', 
-                    data: { enabled: !current }
-                });
-            }},
-            { type: 'separator' },
-            { label: 'Quit', click: async () => {
-                await cleanupBeforeClose();
+    // Create icon (16x16 or 32x32 for best quality in tray)
+    const iconPath = path.join(__dirname, '../../assets/icon.ico');
+    const trayIcon = nativeImage.createFromPath(iconPath);
+    
+    // Resize for tray (optional, Windows handles it well)
+    const resizedIcon = trayIcon.resize({ width: 16, height: 16 });
+    
+    tray = new Tray(resizedIcon);
+    
+    // Tooltip on hover
+    tray.setToolTip('Star Commander');
+    
+    // Initialize notification flag
+    tray.notificationShown = false;
+    
+    // Context menu (right-click) - Initial state
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Show Star Commander',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.show();
+                    mainWindow.focus();
+                }
+            }
+        },
+        {
+            label: 'Hide',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.hide();
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Status',
+            enabled: false
+        },
+        {
+            label: '🔴 Stopped',
+            id: 'status',
+            enabled: false
+        },
+        { type: 'separator' },
+        {
+            label: 'Quit',
+            click: () => {
+                app.isQuitting = true;
                 app.quit();
-            }}
-        ]);
-        
-        tray.setToolTip('Star Commander');
-        tray.setContextMenu(contextMenu);
-        
-        tray.on('click', () => {
-            mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
-        });
-    } catch (e) {
-        console.log('Tray icon not found, skipping tray creation');
-    }
+            }
+        }
+    ]);
+    
+    tray.setContextMenu(contextMenu);
+    
+    // Double-click to show/hide window
+    tray.on('double-click', () => {
+        if (mainWindow) {
+            if (mainWindow.isVisible()) {
+                mainWindow.hide();
+            } else {
+                mainWindow.show();
+                mainWindow.focus();
+            }
+        }
+    });
+    
+    // Single click to show window (Windows behavior)
+    tray.on('click', () => {
+        if (mainWindow) {
+            mainWindow.show();
+            mainWindow.focus();
+        }
+    });
 }
 
 // Key mapping for uiohook
@@ -381,6 +438,54 @@ function clearCoreModuleCache() {
     });
 }
 
+// Update tray status
+function updateTrayStatus(isRunning) {
+    if (!tray) return;
+    
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Show Star Commander',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.show();
+                    mainWindow.focus();
+                }
+            }
+        },
+        {
+            label: 'Hide',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.hide();
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Status',
+            enabled: false
+        },
+        {
+            label: isRunning ? '🟢 Running' : '🔴 Stopped',
+            id: 'status',
+            enabled: false
+        },
+        { type: 'separator' },
+        {
+            label: 'Quit',
+            click: () => {
+                app.isQuitting = true;
+                app.quit();
+            }
+        }
+    ]);
+    
+    tray.setContextMenu(contextMenu);
+    tray.setToolTip(isRunning ? 'Star Commander - Running' : 'Star Commander - Stopped');
+}
+
+
+
 // IPC Handlers
 function setupIPC() {
     // Window controls
@@ -426,6 +531,9 @@ function setupIPC() {
                 data: { enabled: true }
             });
             
+
+            updateTrayStatus(true);
+
             return { success: true };
         } catch (error) {
             console.error('Relay start error:', error);
@@ -448,6 +556,8 @@ function setupIPC() {
             event: 'overlay-toggled', 
             data: { enabled: false }
         });
+
+        updateTrayStatus(false);
         
         return { success: true };
     });
@@ -821,3 +931,5 @@ app.on('will-quit', async () => {
     cleanupKeybinds(); // Use uiohook cleanup instead
     await cleanupBeforeClose();
 });
+
+
