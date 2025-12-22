@@ -146,6 +146,10 @@ class VoiceRelayBot(BaseBot, AudioRelay, VoiceSupport):
             case _:
                 raise ValueError(f"Unknown command action: {command_action}")
 
+    # --------------------------------------------------------------------------- #
+    # Command Implementations
+    # --------------------------------------------------------------------------- #
+
     async def cmd_connect_voice(self, cmd: dict):
         """Connect to a voice channel specified in the command."""
         channel_id = cmd.get("channel_id")
