@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contains secrets!)
+**/*.env
+
+# Personal configuration (contains tokens/user IDs)
+**/*.config.json
+
+# Logs
+*.log
+*.log.*
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE tmp files
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+build/
+out/
+*.exe
+
+# Misc
+*.bak
+*.tmp
