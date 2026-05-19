@@ -18,10 +18,10 @@ let bytesSinceCheck = 0;
 let warnedOnce = false;
 
 function rotate() {
-    if (!logStream) return;
-    try {
-        logStream.end();
-    } catch { /* ignore */ }
+    // Close the current stream if there is one (mid-session rotation).
+    if (logStream) {
+        try { logStream.end(); } catch { /* ignore */ }
+    }
     const previous = logFilePath + '.1';
     try {
         if (fs.existsSync(previous)) fs.unlinkSync(previous);

@@ -942,13 +942,13 @@ function handleRelayEvent({ event, data }) {
             if (overlayChk) overlayChk.checked = overlayEnabled;
             break;
         case 'whisper-on':
-            addLog(`🎤 [${data.user}] Whisper actif`, 'warning');
+            addLog(`🎤 ${window.i18n.t('logs.whisperOn', { user: data.user })}`, 'warning');
             break;
         case 'whisper-off':
-            addLog(`🎤 [${data.user}] Whisper désactivé`, 'info');
+            addLog(`🎤 ${window.i18n.t('logs.whisperOff', { user: data.user })}`, 'info');
             break;
         case 'whisper-speaking':
-            addLog(`📢 Whisper: [${data.user}] → Commandants`, 'speaking');
+            addLog(`📢 ${window.i18n.t('logs.whisperSpeaking', { user: data.user })}`, 'speaking');
             break;
         case 'whisper-sent':
             // Already logged locally
@@ -960,10 +960,10 @@ function handleRelayEvent({ event, data }) {
             addLog(data.message, 'warning');
             break;
         case 'briefing-started':
-            addLog(`📢 Briefing démarré - ${data.movedCount} membres déplacés`, 'success');
+            addLog(`📢 ${window.i18n.t('logs.briefingStarted', { count: data.movedCount })}`, 'success');
             break;
         case 'briefing-ended':
-            addLog(`📢 Briefing terminé - ${data.movedCount} membres renvoyés`, 'success');
+            addLog(`📢 ${window.i18n.t('logs.briefingEnded', { count: data.movedCount })}`, 'success');
             break;
     }
 }
