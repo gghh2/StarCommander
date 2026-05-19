@@ -33,3 +33,7 @@ out/
 # Misc
 *.bak
 *.tmp
+
+# Local-only files (not part of Star Commander)
+rehydratation.html
+StarCommander.code-workspace
