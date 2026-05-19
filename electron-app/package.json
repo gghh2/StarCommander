@@ -81,9 +81,10 @@
       "applicationId": "StarCommander",
       "backgroundColor": "#0c1621",
       "displayName": "Star Commander",
-      "identityName": "StarCommander",
-      "publisher": "CN=KiFouine",
+      "identityName": "KiFouine.StarCommander",
+      "publisher": "CN=17F199C8-2131-4C1B-9DDB-3A6B6F9DBF28",
       "publisherDisplayName": "KiFouine",
+      "setBuildNumber": true,
       "languages": [
         "en-US",
         "fr-FR",
