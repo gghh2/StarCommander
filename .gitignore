@@ -27,6 +27,7 @@ Desktop.ini
 # Build artifacts
 dist/
 build/
+!electron-app/build/appx/
 out/
 *.exe
 

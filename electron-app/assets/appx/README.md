@@ -1,50 +1,47 @@
-# Microsoft Store tile assets
+# Microsoft Store tile source
 
-electron-builder picks up tile and logo images from this folder when building
-the `.appx` / `.msixbundle`. **All files must be PNG, 32-bit RGBA**, exact
-dimensions, no padding tricks.
+This folder holds the **single source of truth** for the Star Commander
+Store tiles: `_source.png` (566×566 logo on dark background).
 
-Drop the following files here before running `npm run build:msix`:
+The actual tile PNGs that electron-builder reads at build time live in
+[`../../build/appx/`](../../build/appx/) (electron-builder hard-codes
+that location).
 
-| Filename | Required size | Used for |
-| --- | --- | --- |
-| `StoreLogo.png` | 50×50 | Store listing icon |
-| `Square44x44Logo.png` | 44×44 | Taskbar, app list, Alt-Tab |
-| `Square71x71Logo.png` | 71×71 | Small Start tile |
-| `Square150x150Logo.png` | 150×150 | Medium Start tile (the default) |
-| `Wide310x150Logo.png` | 310×150 | Wide Start tile |
-| `Square310x310Logo.png` | 310×310 | Large Start tile |
-| `SplashScreen.png` | 620×300 | App launch splash screen |
+## Regenerate the tiles
 
-## Optional but recommended
+If you change `_source.png`, regenerate the 7 size variants with this
+PowerShell one-liner from the repo root:
 
-The Store also accepts "target size" variants of Square44x44Logo for higher
-DPI displays. If you provide these, name them with a `.targetsize-NN_altform-unplated.png`
-suffix:
-
-- `Square44x44Logo.targetsize-16.png` (16×16)
-- `Square44x44Logo.targetsize-24.png` (24×24)
-- `Square44x44Logo.targetsize-32.png` (32×32)
-- `Square44x44Logo.targetsize-48.png` (48×48)
-- `Square44x44Logo.targetsize-256.png` (256×256)
-
-## Background
-
-The current source artwork is [`../icon.png`](../icon.png) and [`../icon.ico`](../icon.ico).
-You will need to either:
-- Use a service like <https://www.appicon.co/#image-sets> or <https://realfavicongenerator.net/>
-  to generate the full set from `icon.png`
-- Or commission a designer for clean per-size renders (recommended for Start tiles —
-  upscaled icons look terrible at 310×310)
-
-## Verification
-
-Once files are dropped here:
-
-```bash
-cd electron-app
-npm run build:msix
+```powershell
+Add-Type -AssemblyName System.Drawing
+$src = 'electron-app\assets\appx\_source.png'
+$outDir = 'electron-app\build\appx'
+New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+$bg = [System.Drawing.ColorTranslator]::FromHtml('#0c1621')
+$tiles = @(
+    @{ Name='StoreLogo.png';         W=50;  H=50;  IconPct=0.85 },
+    @{ Name='Square44x44Logo.png';   W=44;  H=44;  IconPct=0.90 },
+    @{ Name='Square71x71Logo.png';   W=71;  H=71;  IconPct=0.85 },
+    @{ Name='Square150x150Logo.png'; W=150; H=150; IconPct=0.80 },
+    @{ Name='Square310x310Logo.png'; W=310; H=310; IconPct=0.75 },
+    @{ Name='Wide310x150Logo.png';   W=310; H=150; IconPct=0.85 },
+    @{ Name='SplashScreen.png';      W=620; H=300; IconPct=0.80 }
+)
+$source = [System.Drawing.Image]::FromFile($src)
+foreach ($t in $tiles) {
+    $bmp = New-Object System.Drawing.Bitmap($t.W, $t.H, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $g.PixelOffsetMode  = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+    $g.SmoothingMode    = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+    $g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
+    $g.Clear($bg)
+    $minDim = [Math]::Min($t.W, $t.H)
+    $iconSize = [int]($minDim * $t.IconPct)
+    $g.DrawImage($source, [int](($t.W - $iconSize) / 2), [int](($t.H - $iconSize) / 2), $iconSize, $iconSize)
+    $g.Dispose()
+    $bmp.Save((Join-Path $outDir $t.Name), [System.Drawing.Imaging.ImageFormat]::Png)
+    $bmp.Dispose()
+}
+$source.Dispose()
 ```
-
-electron-builder will complain about any missing or wrong-size asset and
-print the exact path it expected.
