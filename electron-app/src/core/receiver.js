@@ -68,18 +68,28 @@ function createReceiver(name, token, channelId) {
             adapterCreator: channel.guild.voiceAdapterCreator,
             selfDeaf: false,
             selfMute: false,
-            group: client.user.id
+            group: client.user.id,
+            debug: true
         });
-        
+
+        currentConnection.on('stateChange', (oldState, newState) => {
+            console.log(`[${name}][voice] state: ${oldState.status} -> ${newState.status}` +
+                (newState.reason ? ` (reason: ${newState.reason})` : '') +
+                (newState.closeCode ? ` (closeCode: ${newState.closeCode})` : ''));
+        });
+        currentConnection.on('debug', (msg) => {
+            console.log(`[${name}][voice][debug]`, msg);
+        });
+
         currentConnection.on(VoiceConnectionStatus.Disconnected, () => {
             ready = false;
             console.log(`[${name}] Disconnected`);
         });
-        
+
         currentConnection.on('error', (error) => {
             console.error(`[${name}] Connection error:`, error.message);
         });
-        
+
         await entersState(currentConnection, VoiceConnectionStatus.Ready, 30_000);
         
         console.log(`[${name}] Joined: ${channel.name}`);

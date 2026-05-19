@@ -196,11 +196,35 @@ async function joinAndListen(channel) {
         guildId: channel.guild.id,
         adapterCreator: channel.guild.voiceAdapterCreator,
         selfDeaf: false,
-        selfMute: false  // Changed to false so we can speak for whisper
+        selfMute: false,  // Changed to false so we can speak for whisper
+        debug: true
     });
-    
+
+    currentConnection.on('stateChange', (oldState, newState) => {
+        const dump = (s) => {
+            const out = { status: s.status };
+            if (s.reason !== undefined) out.reason = s.reason;
+            if (s.closeCode !== undefined) out.closeCode = s.closeCode;
+            return JSON.stringify(out);
+        };
+        console.log(`[Emitter][voice] state: ${dump(oldState)} -> ${dump(newState)}`);
+    });
+
+    // Monkey-patch onNetworkingClose to log the actual WS close code Discord sent
+    const _origOnNetworkingClose = currentConnection.onNetworkingClose.bind(currentConnection);
+    currentConnection.onNetworkingClose = (code) => {
+        console.error(`[Emitter][voice] *** WS CLOSED by server with code: ${code} ***`);
+        return _origOnNetworkingClose(code);
+    };
+    currentConnection.on('error', (err) => {
+        console.error('[Emitter][voice] error:', err && err.message, err && err.stack);
+    });
+    currentConnection.on('debug', (msg) => {
+        console.log('[Emitter][voice][debug]', msg);
+    });
+
     await entersState(currentConnection, VoiceConnectionStatus.Ready, 30_000);
-    
+
     console.log(`[Emitter] Joined: ${channel.name}`);
     
     // Create audio player for whisper playback
