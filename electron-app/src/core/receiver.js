@@ -30,8 +30,9 @@ function createReceiver(name, token, channelId) {
         client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
-                GatewayIntentBits.GuildVoiceStates,
-                GatewayIntentBits.GuildMembers,
+                GatewayIntentBits.GuildVoiceStates
+                // GuildMembers (privileged) dropped — receiver only joins voice + relays audio,
+                // never enumerates members. The Emitter still requests it for chief lookups.
             ]
         });
 

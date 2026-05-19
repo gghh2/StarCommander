@@ -145,22 +145,26 @@ async function updateChiefChannelDisplay() {
 
 // Load configuration
 async function loadConfig() {
+    // Bulk fetch returns secrets redacted as '***'; pull them by explicit key
+    // for the inputs that actually need to display them.
     const config = await window.api.config.get();
-    
+    const tokens = (await window.api.config.get('tokens')) || {};
+    const channels = (await window.api.config.get('channels')) || {};
+
     // Emitter
-    document.getElementById('token-emitter').value = config.tokens?.emitter || '';
+    document.getElementById('token-emitter').value = tokens.emitter || '';
     document.getElementById('channel-source').value = config.channels?.source?.id || '';
-    
+
     // Relay channel (whisper)
     const relayInput = document.getElementById('channel-relay');
     const webhookInput = document.getElementById('webhook-relay');
     if (relayInput) relayInput.value = config.channels?.relay?.id || '';
-    if (webhookInput) webhookInput.value = config.channels?.relay?.webhookUrl || '';
-    
+    if (webhookInput) webhookInput.value = channels.relay?.webhookUrl || '';
+
     // Receivers (tokens)
-    document.getElementById('token-receiver1').value = config.tokens?.receivers?.receiver1 || '';
-    document.getElementById('token-receiver2').value = config.tokens?.receivers?.receiver2 || '';
-    document.getElementById('token-receiver3').value = config.tokens?.receivers?.receiver3 || '';
+    document.getElementById('token-receiver1').value = tokens.receivers?.receiver1 || '';
+    document.getElementById('token-receiver2').value = tokens.receivers?.receiver2 || '';
+    document.getElementById('token-receiver3').value = tokens.receivers?.receiver3 || '';
     
     // Receiver names
     const names = config.tokens?.names || {};

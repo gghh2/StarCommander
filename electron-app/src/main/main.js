@@ -108,20 +108,30 @@ function createWindow() {
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            sandbox: true
         },
         show: false
     });
 
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-    // ✅ AJOUTER CES LIGNES
-    // Ouvrir DevTools avec F12 ou Ctrl+Shift+I
-    mainWindow.webContents.on('before-input-event', (event, input) => {
-        if (input.key === 'F12' || 
-            (input.control && input.shift && input.key === 'I')) {
-            mainWindow.webContents.toggleDevTools();
-        }
+    // DevTools only in dev mode — tokens are recoverable from the renderer via window.api.config.get('tokens')
+    if (isDev) {
+        mainWindow.webContents.on('before-input-event', (event, input) => {
+            if (input.key === 'F12' ||
+                (input.control && input.shift && input.key === 'I')) {
+                mainWindow.webContents.toggleDevTools();
+            }
+        });
+    }
+
+    // Block navigation and popups — preload + window.api remains reachable from any URL
+    mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    mainWindow.webContents.on('will-navigate', (event, url) => {
+        const target = new URL(url);
+        const current = new URL(mainWindow.webContents.getURL());
+        if (target.origin !== current.origin) event.preventDefault();
     });
 
     mainWindow.once('ready-to-show', () => {
@@ -178,12 +188,15 @@ function createOverlay() {
         webPreferences: {
             preload: path.join(__dirname, 'preload-overlay.js'),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            sandbox: true
         },
         show: false  // Always start hidden
     });
 
     overlayWindow.loadFile(path.join(__dirname, '../renderer/overlay.html'));
+    overlayWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    overlayWindow.webContents.on('will-navigate', (event) => event.preventDefault());
     
     // Prevent closing, just hide
     overlayWindow.on('close', (event) => {
@@ -529,6 +542,16 @@ function updateTrayStatus(isRunning) {
 
 
 
+// Validation helpers — used by import-config and relay-whisper
+const DISCORD_WEBHOOK_RE = /^https:\/\/(discord|discordapp)\.com\/api\/webhooks\/\d{17,20}\/[\w-]+$/;
+const DISCORD_SNOWFLAKE_RE = /^\d{17,20}$/;
+function isValidWebhookUrl(u) {
+    return typeof u === 'string' && DISCORD_WEBHOOK_RE.test(u);
+}
+function isValidSnowflake(id) {
+    return typeof id === 'string' && DISCORD_SNOWFLAKE_RE.test(id);
+}
+
 // IPC Handlers
 function setupIPC() {
     // Window controls
@@ -540,7 +563,22 @@ function setupIPC() {
     
     // Config
     ipcMain.handle('config-get', (event, key) => {
-        return key ? store.get(key) : store.store;
+        if (key) return store.get(key);
+        // Bulk fetch — strip sensitive values. Callers that need a token
+        // must request it by explicit key (e.g. 'tokens.emitter').
+        const full = JSON.parse(JSON.stringify(store.store));
+        if (full.tokens) {
+            if (full.tokens.emitter) full.tokens.emitter = '***';
+            if (full.tokens.receivers) {
+                full.tokens.receivers = Object.fromEntries(
+                    Object.keys(full.tokens.receivers).map(k => [k, '***'])
+                );
+            }
+        }
+        if (full.channels?.relay?.webhookUrl) {
+            full.channels.relay.webhookUrl = '***';
+        }
+        return full;
     });
     
     ipcMain.handle('config-set', (event, key, value) => {
@@ -751,7 +789,10 @@ function setupIPC() {
         if (!webhookUrl) {
             return { success: false, error: 'Webhook URL not configured' };
         }
-        
+        if (!isValidWebhookUrl(webhookUrl)) {
+            return { success: false, error: 'Stored webhook URL is not a valid Discord webhook' };
+        }
+
         try {
             const https = require('https');
             const url = new URL(webhookUrl);
@@ -837,7 +878,27 @@ function setupIPC() {
     
     // Open external URL
     ipcMain.handle('open-external', (event, url) => {
-        shell.openExternal(url);
+        // Only allow http(s) URLs to a small set of trusted hosts.
+        try {
+            const u = new URL(String(url));
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+                console.warn('[Main] open-external blocked non-http(s) URL:', u.protocol);
+                return { success: false, error: 'protocol not allowed' };
+            }
+            const allowed = [
+                'discord.com', 'discordapp.com', 'support.discord.com',
+                'github.com', 'www.github.com',
+                'buymeacoffee.com', 'www.buymeacoffee.com'
+            ];
+            if (!allowed.includes(u.hostname.toLowerCase())) {
+                console.warn('[Main] open-external blocked host:', u.hostname);
+                return { success: false, error: 'host not allowed' };
+            }
+            shell.openExternal(u.toString());
+            return { success: true };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
     });
     
     // Export config for chiefs
@@ -885,13 +946,50 @@ function setupIPC() {
         if (!result.canceled && result.filePaths.length > 0) {
             const fs = require('fs');
             try {
-                const data = JSON.parse(fs.readFileSync(result.filePaths[0], 'utf-8'));
-                
-                // Validate
+                const raw = fs.readFileSync(result.filePaths[0], 'utf-8');
+                if (raw.length > 1024 * 1024) {
+                    return { success: false, error: 'Fichier trop volumineux (>1MB)' };
+                }
+                const data = JSON.parse(raw);
+
+                // Shape check
                 if (!data.version || !data.channels || !data.tokens) {
                     return { success: false, error: 'Format de fichier invalide' };
                 }
-                
+
+                // Validate channel IDs (snowflakes)
+                if (data.channels.source?.id && !isValidSnowflake(data.channels.source.id)) {
+                    return { success: false, error: 'ID de canal source invalide' };
+                }
+                if (Array.isArray(data.channels.targets)) {
+                    if (data.channels.targets.length > 32) {
+                        return { success: false, error: 'Trop de canaux cibles' };
+                    }
+                    for (const t of data.channels.targets) {
+                        if (t.id && !isValidSnowflake(t.id)) {
+                            return { success: false, error: 'ID de canal cible invalide' };
+                        }
+                    }
+                }
+                if (data.channels.relay?.id && !isValidSnowflake(data.channels.relay.id)) {
+                    return { success: false, error: 'ID de canal relay invalide' };
+                }
+                if (data.channels.relay?.webhookUrl && !isValidWebhookUrl(data.channels.relay.webhookUrl)) {
+                    return { success: false, error: 'URL de webhook invalide (doit pointer vers discord.com/api/webhooks/)' };
+                }
+
+                // Validate chiefs array
+                if (Array.isArray(data.chiefs)) {
+                    if (data.chiefs.length > 100) {
+                        return { success: false, error: 'Trop de chefs (>100)' };
+                    }
+                    for (const c of data.chiefs) {
+                        if (c.userId && !isValidSnowflake(c.userId)) {
+                            return { success: false, error: 'User ID de chef invalide' };
+                        }
+                    }
+                }
+
                 return { success: true, data };
             } catch (e) {
                 return { success: false, error: e.message };
