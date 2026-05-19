@@ -1,21 +1,29 @@
-# Star Commander
+# Star Commander 🚀
 
-🚀 Discord voice relay system for Star Citizen fleet operations.
+Discord voice relay system for Star Citizen fleet operations.
 
 ## Overview
 
-Star Commander allows fleet commanders to broadcast voice to multiple Discord channels simultaneously, and chiefs to whisper back to the command channel.
+**Star Commander** lets fleet commanders broadcast voice to multiple specialized Discord channels simultaneously, and team leaders ("Chiefs") whisper back to the command channel — across different machines, networks, and time zones.
 
-## Version 4.0 (Current)
+Perfect for coordinating complex ops with artillery, engineers, pilots and specialized teams without forcing everyone into a single voice channel.
 
-The main application is in [`electron-app/`](./electron-app/)
+## Version 4.5
+
+The Electron desktop application lives in [`electron-app/`](./electron-app/).
 
 ### Features
-- 👑 **Commandant mode**: Configure bots, manage fleet, broadcast to channels
-- 🎖️ **Chef mode**: Import config, whisper to commandant
-- 🎤 Global keybinds (no AutoHotkey needed)
-- 📡 Cross-network whisper via Discord webhooks
-- 🖥️ Clean desktop UI with setup wizard
+
+- 👑 **Commandant mode** — Configure 4 Discord bots, broadcast to channels, manage chiefs, briefing mode
+- 🎖️ **Chef mode** — Import shared config, whisper to commandant via webhook
+- 🎤 **Global keybinds** — Numpad-driven channel switching, even when Star Citizen has focus (uIOhook kernel-level interception)
+- 📡 **Cross-network whisper** — No server needed; uses Discord webhooks
+- 🎯 **Tactical HUD overlay** — Always-on-top mini-window with mic indicator, listeners count, volume meter, scalable
+- 📊 **Compact bot status bar** — Real-time health dots for Emitter + receivers under the header
+- 🩺 **Persistent logs** — File logger with auto-rotation, secrets-redacted, downloadable from Options → Diagnostics
+- 🌐 **8 languages** — English, French, Spanish, Portuguese, Russian, Chinese, Japanese, Arabic
+- 🎨 **Customizable theme** — Default Star Citizen style, import/export, radio effect intensity
+- 🔒 **Hardened** — Sandboxed renderer, no token leakage in shared exports, validated imports, allowlisted external URLs
 
 ### Quick Start
 
@@ -25,14 +33,14 @@ npm install
 npm start
 ```
 
-### Build Installer
+### Build Windows Installer
 
 ```bash
 cd electron-app
 npm run build:win
 ```
 
-See [`electron-app/README.md`](./electron-app/README.md) for full documentation.
+See [`electron-app/README.md`](./electron-app/README.md) for full documentation, bot setup, and developer notes.
 
 ## Legacy Version
 
@@ -41,17 +49,3 @@ The original Node.js + AutoHotkey version is archived in [`legacy/`](./legacy/) 
 ## License
 
 MIT
-
-# Star Commander V4.0 🚀
-
-**Star Commander** is a professional voice relay system for Discord, designed for fleet coordination in Star Citizen. It enables commanders to broadcast to multiple specialized channels simultaneously while allowing team leaders to communicate back via whisper.
-
-**Key Features:**
-- Multi-channel voice relay with role-based broadcasting
-- Whisper system for bidirectional communication
-- Briefing mode for fleet gatherings
-- Radio effects (walkie-talkie filter, click sounds)
-- Multilingual interface (8 languages)
-- Customizable Star Citizen theme
-
-Perfect for managing complex fleet operations with artillery, engineers, pilots, and specialized teams.
