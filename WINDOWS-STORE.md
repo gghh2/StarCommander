@@ -8,10 +8,17 @@ Current state: [`electron-app/package.json`](electron-app/package.json) already 
 
 ## 1. Microsoft Partner Center account
 
-- Sign up at <https://partner.microsoft.com/dashboard/registration>
-- Individual account: **19 USD** one-time fee
-- Company account: ~99 USD plus a Dun & Bradstreet verification step (only needed if you want to publish under a company name)
-- Verification takes 1–7 days
+- Sign up at **<https://storedeveloper.microsoft.com>** (this is the only
+  supported entry point for the new free flow; other URLs send you to a
+  legacy flow that still charges)
+- **Free** for both Individual and Company accounts since the 2025
+  onboarding rework — no registration fee
+- Individual account requires a personal Microsoft account (MSA) — Gmail
+  and similar are not accepted; create or sign in with a Microsoft account
+- Identity verification: government-issued ID + selfie, on a mobile device
+  in good lighting. Mandatory.
+- Account approval is typically immediate to a few minutes (was 1-7 days
+  under the old flow)
 
 ## 2. Reserve the app identity
 
