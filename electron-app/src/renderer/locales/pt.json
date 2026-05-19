@@ -8,7 +8,8 @@
     "running": "Em execução",
     "ready": "Pronto",
     "connecting": "Conectando...",
-    "stopping": "Parando..."
+    "stopping": "Parando...",
+    "disconnected": "Desconectado"
   },
   "modes": {
     "commander": "Comandante",

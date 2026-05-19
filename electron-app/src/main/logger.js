@@ -35,6 +35,22 @@ function init() {
     const origWarn = console.warn.bind(console);
     const origError = console.error.bind(console);
 
+    // Belt-and-suspenders redactor: even if some code path accidentally
+    // logs a Discord bot token, voice session token, SRTP secret_key,
+    // or webhook URL, scrub it before it hits the file.
+    const redact = (s) => {
+        if (typeof s !== 'string') return s;
+        return s
+            .replace(/("token"\s*:\s*")[^"]+(")/g, '$1[REDACTED]$2')
+            .replace(/("secret_key"\s*:\s*)\[[^\]]+\]/g, '$1[REDACTED]')
+            .replace(/("secret_key"\s*:\s*")[^"]+(")/g, '$1[REDACTED]$2')
+            .replace(/("emitter"\s*:\s*")[^"]+(")/g, '$1[REDACTED]$2')
+            .replace(/("receiver\d"\s*:\s*")[^"]+(")/g, '$1[REDACTED]$2')
+            .replace(/(https:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/)[\w-]+/g, '$1[REDACTED]')
+            // Discord bot tokens: 24+ chars base64url . 6+ . 27+
+            .replace(/\b[A-Za-z0-9_-]{24,}\.[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{27,}\b/g, '[REDACTED_TOKEN]');
+    };
+
     const write = (level, args) => {
         const line = `[${new Date().toISOString()}] [${level}] ` +
             args.map(a => {
@@ -43,7 +59,7 @@ function init() {
                     try { return JSON.stringify(a); } catch { return String(a); }
                 }
                 return String(a);
-            }).join(' ') + '\n';
+            }).map(redact).join(' ') + '\n';
         try { logStream.write(line); } catch { /* ignore */ }
     };
 

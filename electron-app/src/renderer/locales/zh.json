@@ -8,7 +8,8 @@
     "running": "运行中",
     "ready": "就绪",
     "connecting": "连接中...",
-    "stopping": "停止中..."
+    "stopping": "停止中...",
+    "disconnected": "已断开"
   },
   "modes": {
     "commander": "指挥官",

@@ -62,6 +62,9 @@ function createReceiver(name, token, channelId) {
         console.log(`[${name}] Found: ${channel.name}`);
         targetChannel = channel;
         
+        // See emitter.js — verbose voice debug leaks SRTP keys; opt-in only.
+        const voiceDebug = process.env.STAR_COMMANDER_VOICE_DEBUG === '1';
+
         currentConnection = joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,
@@ -69,7 +72,7 @@ function createReceiver(name, token, channelId) {
             selfDeaf: false,
             selfMute: false,
             group: client.user.id,
-            debug: true
+            debug: voiceDebug
         });
 
         currentConnection.on('stateChange', (oldState, newState) => {
@@ -77,9 +80,11 @@ function createReceiver(name, token, channelId) {
                 (newState.reason ? ` (reason: ${newState.reason})` : '') +
                 (newState.closeCode ? ` (closeCode: ${newState.closeCode})` : ''));
         });
-        currentConnection.on('debug', (msg) => {
-            console.log(`[${name}][voice][debug]`, msg);
-        });
+        if (voiceDebug) {
+            currentConnection.on('debug', (msg) => {
+                console.log(`[${name}][voice][debug]`, msg);
+            });
+        }
 
         currentConnection.on(VoiceConnectionStatus.Disconnected, () => {
             ready = false;

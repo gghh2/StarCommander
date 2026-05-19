@@ -843,12 +843,17 @@ function setupIPC() {
     // Export config for chiefs
     ipcMain.handle('export-config', async () => {
         const { dialog } = require('electron');
-        
-        // Build export data (without tokens for security)
+
+        // Build export data — strip bot token values (emitter/receivers).
+        // Names are kept because they are just display labels (e.g. "Artillery").
+        // Chiefs do not need bot tokens; they send whisper commands via the webhook only.
+        const sourceTokens = store.get('tokens') || {};
         const exportData = {
             version: '4.0',
             channels: store.get('channels'),
-            tokens: store.get('tokens'),  // Include tokens so chiefs can connect
+            tokens: {
+                names: sourceTokens.names || {}
+            },
             chiefs: store.get('chiefs') || []
         };
         

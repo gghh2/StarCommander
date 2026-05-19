@@ -8,7 +8,8 @@
     "running": "実行中",
     "ready": "準備完了",
     "connecting": "接続中...",
-    "stopping": "停止中..."
+    "stopping": "停止中...",
+    "disconnected": "切断されました"
   },
   "modes": {
     "commander": "司令官",

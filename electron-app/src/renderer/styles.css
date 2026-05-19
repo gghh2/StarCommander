@@ -499,12 +499,79 @@ hr {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--error);
+    background: var(--text-secondary);
     flex-shrink: 0;
+    transition: background 0.15s ease;
 }
 
 .bot-status.connected .bot-dot {
     background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+}
+
+.bot-status.error .bot-dot {
+    background: var(--error);
+    box-shadow: 0 0 6px var(--error);
+}
+
+.bot-status-suffix {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+.bot-status.connected .bot-status-suffix {
+    display: none;
+}
+
+/* Compact bot status bar (under header) */
+.bot-status-bar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow-x: auto;
+    min-height: 32px;
+}
+
+.bot-status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.bot-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+}
+
+.bot-status-item.connected .bot-status-dot {
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+}
+
+.bot-status-item.connected .bot-status-name {
+    color: var(--text-primary);
+}
+
+.bot-status-item.error .bot-status-dot {
+    background: var(--error);
+    box-shadow: 0 0 6px var(--error);
+}
+
+.bot-status-name {
+    white-space: nowrap;
 }
 
 /* Wizard */

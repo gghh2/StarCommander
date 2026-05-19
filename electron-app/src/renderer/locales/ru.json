@@ -8,7 +8,8 @@
     "running": "Работает",
     "ready": "Готов",
     "connecting": "Подключение...",
-    "stopping": "Остановка..."
+    "stopping": "Остановка...",
+    "disconnected": "Отключён"
   },
   "modes": {
     "commander": "Командир",

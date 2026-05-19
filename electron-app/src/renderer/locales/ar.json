@@ -8,7 +8,8 @@
     "running": "قيد التشغيل",
     "ready": "جاهز",
     "connecting": "جارٍ الاتصال...",
-    "stopping": "جارٍ الإيقاف..."
+    "stopping": "جارٍ الإيقاف...",
+    "disconnected": "غير متصل"
   },
   "modes": {
     "commander": "القائد",

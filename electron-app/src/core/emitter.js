@@ -191,13 +191,19 @@ async function joinAndListen(channel) {
     
     console.log(`[Emitter] Joining: ${channel.name}`);
     
+    // Verbose voice debug is dangerous in production: discord.js logs the
+    // Identify packet (voice session token) and Session Description (SRTP
+    // secret_key) which would land in star-commander.log and be exposed by
+    // the "Download logs" UI. Only enable when STAR_COMMANDER_VOICE_DEBUG=1.
+    const voiceDebug = process.env.STAR_COMMANDER_VOICE_DEBUG === '1';
+
     currentConnection = joinVoiceChannel({
         channelId: channel.id,
         guildId: channel.guild.id,
         adapterCreator: channel.guild.voiceAdapterCreator,
         selfDeaf: false,
         selfMute: false,  // Changed to false so we can speak for whisper
-        debug: true
+        debug: voiceDebug
     });
 
     currentConnection.on('stateChange', (oldState, newState) => {
@@ -219,9 +225,11 @@ async function joinAndListen(channel) {
     currentConnection.on('error', (err) => {
         console.error('[Emitter][voice] error:', err && err.message, err && err.stack);
     });
-    currentConnection.on('debug', (msg) => {
-        console.log('[Emitter][voice][debug]', msg);
-    });
+    if (voiceDebug) {
+        currentConnection.on('debug', (msg) => {
+            console.log('[Emitter][voice][debug]', msg);
+        });
+    }
 
     await entersState(currentConnection, VoiceConnectionStatus.Ready, 30_000);
 

@@ -35,6 +35,26 @@
             </div>
         </div>
 
+        <!-- Bot connection status (compact) -->
+        <div class="bot-status-bar" id="bot-status-bar">
+            <div class="bot-status-item" data-bot="emitter">
+                <span class="bot-status-dot"></span>
+                <span class="bot-status-name">Emitter</span>
+            </div>
+            <div class="bot-status-item" data-bot="receiver1">
+                <span class="bot-status-dot"></span>
+                <span class="bot-status-name" id="receiver1-mini-name">Receiver 1</span>
+            </div>
+            <div class="bot-status-item" data-bot="receiver2">
+                <span class="bot-status-dot"></span>
+                <span class="bot-status-name" id="receiver2-mini-name">Receiver 2</span>
+            </div>
+            <div class="bot-status-item" data-bot="receiver3">
+                <span class="bot-status-dot"></span>
+                <span class="bot-status-name" id="receiver3-mini-name">Receiver 3</span>
+            </div>
+        </div>
+
         <!-- Main Panel: 2 columns -->
         <div class="main-panel">
             <!-- Left: Channel Selector -->
@@ -105,18 +125,22 @@
                     <div class="bot-status" id="emitter-status">
                         <span class="bot-dot"></span>
                         <span>Emitter</span>
+                        <span class="bot-status-suffix">(<span data-i18n="status.disconnected">Disconnected</span>)</span>
                     </div>
                     <div class="bot-status" id="receiver1-status">
                         <span class="bot-dot"></span>
                         <span id="receiver1-name">Receiver 1</span>
+                        <span class="bot-status-suffix">(<span data-i18n="status.disconnected">Disconnected</span>)</span>
                     </div>
                     <div class="bot-status" id="receiver2-status">
                         <span class="bot-dot"></span>
                         <span id="receiver2-name">Receiver 2</span>
+                        <span class="bot-status-suffix">(<span data-i18n="status.disconnected">Disconnected</span>)</span>
                     </div>
                     <div class="bot-status" id="receiver3-status">
                         <span class="bot-dot"></span>
                         <span id="receiver3-name">Receiver 3</span>
+                        <span class="bot-status-suffix">(<span data-i18n="status.disconnected">Disconnected</span>)</span>
                     </div>
                 </div>
                 

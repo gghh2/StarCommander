@@ -69,6 +69,7 @@ function applyModeUI() {
     const channelGrid = document.getElementById('channel-grid');
     const btnStartEl = document.getElementById('btn-start');
     const botStatusGrid = document.getElementById('bot-status-grid');
+    const botStatusBar = document.getElementById('bot-status-bar');
     const chiefStatusInfo = document.getElementById('chief-status-info');
     
     if (appMode === 'commandant') {
@@ -87,6 +88,7 @@ function applyModeUI() {
         if (channelGrid) channelGrid.style.display = 'grid';
         if (btnStartEl) btnStartEl.style.display = '';
         if (botStatusGrid) botStatusGrid.style.display = 'grid';
+        if (botStatusBar) botStatusBar.style.display = 'flex';
         if (chiefStatusInfo) chiefStatusInfo.style.display = 'none';
     } else if (appMode === 'chief') {
         modeBadge.textContent = `🎖️ ${window.i18n.t('modes.chief')}`;
@@ -104,6 +106,7 @@ function applyModeUI() {
         if (btnStartEl) btnStartEl.style.display = 'none';
         // Show chief info instead of bot status
         if (botStatusGrid) botStatusGrid.style.display = 'none';
+        if (botStatusBar) botStatusBar.style.display = 'none';
         if (chiefStatusInfo) chiefStatusInfo.style.display = 'block';
         // Show ready state
         statusIndicator.classList.add('running');
@@ -169,7 +172,11 @@ async function loadConfig() {
     document.getElementById('receiver1-name').textContent = names.receiver1 || 'Receiver 1';
     document.getElementById('receiver2-name').textContent = names.receiver2 || 'Receiver 2';
     document.getElementById('receiver3-name').textContent = names.receiver3 || 'Receiver 3';
-    
+    // Mirror to compact status bar
+    document.getElementById('receiver1-mini-name').textContent = names.receiver1 || 'Receiver 1';
+    document.getElementById('receiver2-mini-name').textContent = names.receiver2 || 'Receiver 2';
+    document.getElementById('receiver3-mini-name').textContent = names.receiver3 || 'Receiver 3';
+
     // Target channels
     if (config.channels?.targets) {
         config.channels.targets.forEach((target, i) => {
@@ -713,11 +720,14 @@ function setRunningState(running) {
         btnStart.textContent = `▶ ${window.i18n.t('buttons.start')}`;
         btnStart.classList.add('btn-primary');
         
-        // Reset all bot statuses
+        // Reset all bot statuses (status tab + compact bar)
         document.getElementById('emitter-status').classList.remove('connected');
         document.getElementById('receiver1-status').classList.remove('connected');
         document.getElementById('receiver2-status').classList.remove('connected');
         document.getElementById('receiver3-status').classList.remove('connected');
+        document.querySelectorAll('.bot-status-bar .bot-status-item').forEach(el => {
+            el.classList.remove('connected', 'error');
+        });
     }
     
     // Update load members button visibility
@@ -961,6 +971,12 @@ function updateBotStatus(index, connected) {
     if (element) {
         element.classList.toggle('connected', connected);
     }
+    // Mirror state on the compact status bar
+    const miniItem = document.querySelector(`.bot-status-bar [data-bot="${index}"]`);
+    if (miniItem) {
+        miniItem.classList.toggle('connected', connected);
+        miniItem.classList.remove('error');
+    }
 }
 
 // Add log entry
@@ -1052,7 +1068,11 @@ async function saveBots() {
     document.getElementById('receiver1-name').textContent = names.receiver1 || 'Receiver 1';
     document.getElementById('receiver2-name').textContent = names.receiver2 || 'Receiver 2';
     document.getElementById('receiver3-name').textContent = names.receiver3 || 'Receiver 3';
-    
+    // Mirror to compact status bar
+    document.getElementById('receiver1-mini-name').textContent = names.receiver1 || 'Receiver 1';
+    document.getElementById('receiver2-mini-name').textContent = names.receiver2 || 'Receiver 2';
+    document.getElementById('receiver3-mini-name').textContent = names.receiver3 || 'Receiver 3';
+
     targets.forEach((target, i) => {
         const nameSpan = document.getElementById(`channel${i+1}-name`);
         if (nameSpan) nameSpan.textContent = target.name;
@@ -1350,18 +1370,26 @@ async function exportConfig() {
 // Import config (for commandant - restore/migrate)
 async function importConfigCommandant() {
     const result = await window.api.importConfig();
-    
+
     if (result.success) {
         const data = result.data;
-        
-        // Save imported config
-        await window.api.config.set('tokens', data.tokens);
+
+        // Merge imported tokens with existing — never overwrite real token values
+        // with empty ones from a chief-style export (exports strip emitter/receivers).
+        const existingTokens = (await window.api.config.get('tokens')) || {};
+        const mergedTokens = {
+            emitter: data.tokens?.emitter || existingTokens.emitter || '',
+            receivers: { ...(existingTokens.receivers || {}), ...(data.tokens?.receivers || {}) },
+            names: { ...(existingTokens.names || {}), ...(data.tokens?.names || {}) }
+        };
+
+        await window.api.config.set('tokens', mergedTokens);
         await window.api.config.set('channels', data.channels);
         await window.api.config.set('chiefs', data.chiefs || []);
-        
+
         // Reload UI
         await loadConfig();
-        
+
         addLog('Config importée avec succès !', 'success');
     } else if (result.error) {
         addLog(`Erreur import: ${result.error}`, 'error');
@@ -1403,12 +1431,18 @@ async function wizardFinishCommandantImport() {
         addLog('Erreur: pas de config importée', 'error');
         return;
     }
-    
+
     // Save mode
     await window.api.config.set('mode', 'commandant');
-    
-    // Save imported config
-    await window.api.config.set('tokens', importedConfig.tokens);
+
+    // Merge with existing tokens so an imported chief-style export
+    // (which has no token values) doesn't wipe an already-configured Commander.
+    const existingTokens = (await window.api.config.get('tokens')) || {};
+    await window.api.config.set('tokens', {
+        emitter: importedConfig.tokens?.emitter || existingTokens.emitter || '',
+        receivers: { ...(existingTokens.receivers || {}), ...(importedConfig.tokens?.receivers || {}) },
+        names: { ...(existingTokens.names || {}), ...(importedConfig.tokens?.names || {}) }
+    });
     await window.api.config.set('channels', importedConfig.channels);
     await window.api.config.set('chiefs', importedConfig.chiefs || []);
     
@@ -1659,9 +1693,11 @@ async function wizardFinishChief() {
     
     // Save mode
     await window.api.config.set('mode', 'chief');
-    
-    // Save imported config
-    await window.api.config.set('tokens', importedConfig.tokens);
+
+    // Chiefs only need channel info + labels; never store bot token values on a Chief machine.
+    await window.api.config.set('tokens', {
+        names: importedConfig.tokens?.names || {}
+    });
     await window.api.config.set('channels', importedConfig.channels);
     await window.api.config.set('chiefs', importedConfig.chiefs || []);
     
