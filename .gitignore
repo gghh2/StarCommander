@@ -26,10 +26,10 @@ Desktop.ini
 
 # Build artifacts
 dist/
-build/
-!electron-app/build/appx/
 out/
 *.exe
+# Note: build/ is NOT ignored — electron-app/build/appx/ holds the
+# Microsoft Store tile PNGs (read by electron-builder at .appx build time).
 
 # Misc
 *.bak
