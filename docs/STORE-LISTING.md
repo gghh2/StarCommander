@@ -69,6 +69,33 @@ Source code, issue tracker, and roadmap: https://github.com/gghh2/StarCommander
 
 (2 230 characters.)
 
+## Product features (max 20 bullets)
+
+Pasted one per row in Partner Center → "Fonctionnalités du produit" → "Ajouter d'autres éléments".
+
+```
+Voice relay across multiple Discord channels simultaneously
+Specialist channel broadcast — Artillery, Engineers, Pilots
+Cross-network whisper from chiefs via Discord webhook
+Briefing mode — rally all squads to HQ instantly
+Tactical HUD overlay with live mic indicator
+Real-time listener count per channel
+Overlay scale slider (50%–150%) for any monitor
+Walkie-talkie radio voice effect with adjustable intensity
+Radio click sounds at transmission start and end
+Global numpad keybinds — work in-game (kernel-level capture)
+8 UI languages: English, French, Spanish, Portuguese, Russian, Chinese, Japanese, Arabic
+Customizable Star Citizen color theme
+Theme import/export for sharing with your fleet
+System tray with one-click channel quick-actions
+Persistent logs with auto-rotation, downloadable from Options
+Bot tokens and webhook URLs auto-redacted from logs
+Always-visible bot connection status bar
+Discord member and channel autocomplete in setup wizard
+Setup wizard for first-launch configuration
+Free, open source, MIT-licensed
+```
+
 ## Keywords (max 7, max 30 chars each)
 
 ```
