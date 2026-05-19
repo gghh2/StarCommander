@@ -6,6 +6,8 @@ plain text — no markdown, no HTML in these fields.
 
 ---
 
+# Listing — English (US)
+
 ## Display name
 
 ```
@@ -147,6 +149,137 @@ Available in all markets where Discord is available. (Effectively: every market 
 - Q: Does it share user-generated content? → **No (Star Commander itself does not; Discord does, but that's Discord's policy)**
 
 Expected outcome: **PEGI 3 / ESRB Everyone**.
+
+---
+
+# Listing — Français (France)
+
+## Nom d'affichage
+
+```
+StarCommander
+```
+
+(Doit matcher exactement le `DisplayName` du manifest MSIX — sans espace
+puisque "Star Commander" avec espace est déjà réservé par quelqu'un d'autre.)
+
+## Description courte (max 200 caractères)
+
+```
+Relais vocal Discord pour Star Citizen. Diffusez à plusieurs canaux, recevez les whispers des chefs d'escouade par webhook, le tout depuis un HUD tactique sur le bureau.
+```
+
+(178 caractères — sous la limite.)
+
+## Description longue (max 10 000 caractères)
+
+```
+Star Commander est un relais vocal pour les commandants de flotte Star Citizen qui doivent coordonner des escouades dispersées sur plusieurs canaux vocaux Discord — artillerie, ingénieurs, pilotes, chefs d'escadrille — sans imposer à tout le monde un seul canal commun.
+
+✦ Comment ça marche
+
+Star Commander pilote quatre bots Discord que vous créez : un « Émetteur » qui écoute votre canal de commandement, et trois « Récepteurs » qui diffusent dans vos canaux spécialisés. Une pression sur le pavé numérique (Num2, Num3, Num4) et votre voix est instantanément diffusée vers ce canal — Star Citizen ne perd jamais le focus. Num0 pour diffuser à TOUS les canaux spécialisés en simultané. Num1 pour couper le relais sans quitter Discord.
+
+✦ Whisper depuis le terrain
+
+Les chefs d'escouade (« Chiefs ») importent un fichier de configuration partagé et peuvent chuchoter directement dans votre canal de commandement via un webhook Discord. Aucun serveur à héberger, aucun port à ouvrir — fonctionne entre différents PC, FAI et continents.
+
+✦ HUD tactique en superposition
+
+Une petite fenêtre toujours visible affiche votre canal actif, le nombre d'auditeurs en direct, un vu-mètre d'activité vocale et un voyant de connexion. Échelle réglable de 50 % à 150 % pour s'adapter à votre écran. Cliquez pour la déployer et voir les infos étendues.
+
+✦ Conçu pour les opérations
+
+— 8 langues d'interface : Anglais, Français, Espagnol, Portugais, Russe, Chinois, Japonais, Arabe
+— Touches numpad configurables, capturées au niveau noyau (fonctionne en jeu sans astuce de focus)
+— Mode briefing : ramène toute l'escouade au canal de commandement pour un débrief rapide
+— Effet radio walkie-talkie réglable et sons de clic radio appliqués aux voix relayées pour l'ambiance
+— Thème Star Citizen personnalisable, entièrement modifiable, import/export
+— Intégration system tray avec actions rapides en un clic
+
+✦ Conçu pour la confidentialité et la sécurité
+
+— Tokens de bots, IDs de canaux, configuration : tout reste sur votre machine
+— Pas de télémétrie, pas d'analytics, pas d'authentification distante
+— L'audio est relayé en direct, jamais enregistré
+— Les logs sont stockés localement uniquement ; les valeurs sensibles (tokens, URLs de webhook, clés SRTP) sont automatiquement masquées avant écriture sur disque
+— Les fichiers de configuration partagés excluent automatiquement les tokens de bots pour éviter les fuites accidentelles vers vos chefs
+— Renderer en sandbox avec isolation de contexte stricte ; URLs externes restreintes à Discord, GitHub et la cagnotte du développeur
+
+✦ Gratuit, MIT, open source
+
+Code source, suivi de bugs et roadmap : https://github.com/gghh2/StarCommander
+
+✦ Pré-requis
+
+— Un serveur Discord que vous administrez
+— Quatre bots Discord (Discord Developer Portal — gratuit ; environ 10 min de configuration par bot)
+— Windows 10 19H2 ou supérieur, ou Windows 11
+— FFmpeg dans le PATH (utilisé par le filtre radio ; l'application vous prévient s'il manque)
+```
+
+## Fonctionnalités du produit (max 20)
+
+```
+Relais vocal entre plusieurs canaux Discord simultanément
+Diffusion vers canaux spécialisés — Artillerie, Ingénieurs, Pilotes
+Whisper inter-réseau depuis les chefs via webhook Discord
+Mode briefing — rappel instantané de toute l'escouade au QG
+HUD tactique avec indicateur micro en direct
+Comptage d'auditeurs en temps réel par canal
+Slider d'échelle d'overlay (50 %–150 %) pour tout écran
+Effet radio walkie-talkie avec intensité réglable
+Sons de clic radio au début et à la fin de transmission
+Keybinds numpad globaux — fonctionnent en jeu (capture niveau noyau)
+8 langues d'interface : Anglais, Français, Espagnol, Portugais, Russe, Chinois, Japonais, Arabe
+Thème Star Citizen personnalisable
+Import/export de thèmes pour partager avec votre flotte
+System tray avec changement de canal en un clic
+Logs persistants avec rotation automatique, téléchargeables depuis les Options
+Tokens et URLs de webhook automatiquement masqués dans les logs
+Barre de statut des bots toujours visible sous l'entête
+Autocomplétion des membres et canaux Discord dans l'assistant
+Assistant de configuration au premier lancement
+Gratuit, open source, sous licence MIT
+```
+
+## Mots-clés (max 7, max 30 caractères chacun)
+
+```
+Star Citizen
+Discord
+relais vocal
+flotte
+talkie walkie
+overlay
+bot
+```
+
+## Notes de version
+
+```
+Version 4.5
+
+— HUD tactique avec indicateur micro en direct, comptage d'auditeurs, vu-mètre et slider d'échelle
+— Barre compacte de statut des bots sous l'entête principale
+— Logger persistant avec rotation automatique ; logs téléchargeables depuis Options → Diagnostics
+— Effet radio walkie-talkie réglable
+— 8 langues d'interface
+— Sécurité : tokens automatiquement strippés des exports de config ; renderer sandboxé ; URLs externes restreintes ; valeurs sensibles masquées dans les logs
+— Performance : optimisation des ticks d'overlay ; processus ffmpeg évité en mode MUTE
+— Correctifs : passage au gateway voice Discord v8 (Electron 33)
+```
+
+## Déclarations de données (en français)
+
+Pour chaque catégorie de données collectées, traduction des explications :
+
+- *Données de diagnostic* : « À l'initiative de l'utilisateur uniquement. L'application écrit un fichier journal sur le disque local de l'utilisateur ; celui-ci peut choisir de le télécharger et de le partager. L'application ne transmet aucun journal d'elle-même. »
+- *Données audio* : « L'audio provenant d'un canal vocal Discord est décodé, éventuellement filtré, puis ré-encodé pour transmission vers d'autres canaux vocaux Discord en temps réel. L'audio n'est jamais écrit sur disque. »
+
+---
+
+# Champs communs aux deux listings
 
 ## Privacy policy URL
 
