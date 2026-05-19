@@ -35,6 +35,7 @@
     "files": [
       "src/**/*",
       "assets/**/*",
+      "!assets/appx/**",
       "package.json"
     ],
     "asar": true,
