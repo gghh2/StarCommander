@@ -8,13 +8,14 @@ const prism = require('prism-media');
 const path = require('path');
 const fs = require('fs');
 
-const EmitterBot = require('./emitter');
+const { createEmitter } = require('./emitter');
 const { createReceiver } = require('./receiver');
 
 class RelayManager {
     constructor(config, eventCallback) {
         this.config = config;
         this.eventCallback = eventCallback;
+        this.emitter = createEmitter();
         this.receivers = [];
         this.globalTarget = 'mute';
         this.activeStreams = [];
@@ -82,7 +83,7 @@ class RelayManager {
         const target = this.globalTarget;
         let listenersCount = 0;
 
-        const client = EmitterBot.getClient();
+        const client = this.emitter.getClient();
         if (client && client.channels) {
             try {
                 if (target === 'mute') {
@@ -273,12 +274,12 @@ class RelayManager {
         }
         
         try {
-            if (EmitterBot.isReady()) {
+            if (this.emitter.isReady()) {
                 const { createAudioResource, StreamType } = require('@discordjs/voice');
                 const resource = createAudioResource(clickPath, {
                     inputType: StreamType.Arbitrary
                 });
-                EmitterBot.playResource(resource);
+                this.emitter.playResource(resource);
                 console.log('[RelayManager] Click sound on emitter played');
             }
         } catch (err) {
@@ -325,7 +326,7 @@ class RelayManager {
         
         // Resubscribe speaking users
         if (this.globalTarget !== 'mute') {
-            EmitterBot.resubscribeSpeakingUsers();
+            this.emitter.resubscribeSpeakingUsers();
         }
     }
     
@@ -348,8 +349,8 @@ class RelayManager {
         this.whisperStreams = [];
         
         // Also stop the emitter's audio player
-        if (EmitterBot.isReady()) {
-            EmitterBot.stopPlayback();
+        if (this.emitter.isReady()) {
+            this.emitter.stopPlayback();
         }
     }
     
@@ -378,7 +379,7 @@ class RelayManager {
         }
         
         // Start emitter
-        await EmitterBot.start(
+        await this.emitter.start(
             coreConfig,
             (audioStream, auth) => this.onCommanderSpeaking(audioStream, auth),
             () => this.getGlobalTarget()
@@ -434,7 +435,7 @@ class RelayManager {
         
         this.killActiveStreams();
         
-        await EmitterBot.stop();
+        await this.emitter.stop();
         this.emit('bot-disconnected', { name: 'Emitter', index: 'emitter' });
         
         for (const receiver of this.receivers) {
@@ -605,7 +606,7 @@ class RelayManager {
     
     // Setup listener for whisper commands in relay channel
     setupRelayListener() {
-        const client = EmitterBot.getClient();
+        const client = this.emitter.getClient();
         if (!client) {
             this.emit('warning', { message: 'No client available for relay listener' });
             return;
@@ -706,7 +707,7 @@ class RelayManager {
         this.emit('whisper-speaking', { user: displayName });
         
         // Play the audio through the Emitter (to Commandants channel)
-        if (EmitterBot.isReady()) {
+        if (this.emitter.isReady()) {
             let isCleanedUp = false;
             
             // Decode opus to PCM for radio effect
@@ -723,7 +724,7 @@ class RelayManager {
             this.whisperStreams.push(audioStream, decoder, processedStream);
             
             // Play processed stream through emitter
-            EmitterBot.playRawStream(processedStream);
+            this.emitter.playRawStream(processedStream);
             
             // Pipe audio to decoder (with error protection)
             audioStream.on('data', (chunk) => {
@@ -818,7 +819,7 @@ class RelayManager {
             return;
         }
         
-        const client = EmitterBot.getClient();
+        const client = this.emitter.getClient();
         if (!client) {
             throw new Error('Emitter client not available');
         }
@@ -872,7 +873,7 @@ class RelayManager {
             return;
         }
         
-        const client = EmitterBot.getClient();
+        const client = this.emitter.getClient();
         if (!client) {
             throw new Error('Emitter client not available');
         }
@@ -922,7 +923,7 @@ class RelayManager {
     
     // Get all guild members (for chiefs autocomplete)
     async getGuildMembers() {
-        const client = EmitterBot.getClient();  // ✅ Utiliser EmitterBot directement
+        const client = this.emitter.getClient();  // ✅ Utiliser EmitterBot directement
         if (!client || !client.guilds) {
             console.log('[RelayManager] No client or guilds available');
             return [];
@@ -967,7 +968,7 @@ class RelayManager {
 
     // Get all voice AND text channels from guild (for Bots configuration)
     async getGuildChannels() {
-        const client = EmitterBot.getClient();
+        const client = this.emitter.getClient();
         if (!client || !client.guilds) {
             console.log('[RelayManager] No client or guilds available');
             return { voice: [], text: [] };

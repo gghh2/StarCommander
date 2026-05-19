@@ -473,18 +473,6 @@ function cleanupKeybinds() {
 }
 
 // Clear require cache for core modules (needed for restart)
-function clearCoreModuleCache() {
-    const corePath = path.join(__dirname, '../core');
-    Object.keys(require.cache).forEach(key => {
-        if (key.includes(corePath.replace(/\\/g, '/'))) {
-            delete require.cache[key];
-        }
-        if (key.includes(corePath)) {
-            delete require.cache[key];
-        }
-    });
-}
-
 // Update tray status
 function updateTrayStatus(isRunning) {
     if (!tray) return;
@@ -594,8 +582,6 @@ function setupIPC() {
     // Relay controls
     ipcMain.handle('relay-start', async () => {
         try {
-            clearCoreModuleCache();
-            
             const RelayManager = require('../core/relayManager');
             relayManager = new RelayManager(store.store, (event, data) => {
                 // Forward all events to renderer
