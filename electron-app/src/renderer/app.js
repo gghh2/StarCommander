@@ -1285,17 +1285,36 @@ function handleKeybindCapture(e) {
 function renderChiefs(chiefs) {
     const container = document.getElementById('chiefs-list');
     if (!container) return;
-    
-    container.innerHTML = chiefs.map((chief, i) => `
-        <div class="chief-item">
-            <div class="chief-info">
-                <span class="chief-name">${chief.name}</span>
-                <span class="chief-channel">${chief.channelName || chief.channelKey}</span>
-                <span class="chief-id">${chief.userId}</span>
-            </div>
-            <button onclick="removeChief(${i})">✕</button>
-        </div>
-    `).join('');
+
+    container.textContent = '';
+    chiefs.forEach((chief, i) => {
+        const item = document.createElement('div');
+        item.className = 'chief-item';
+
+        const info = document.createElement('div');
+        info.className = 'chief-info';
+
+        const name = document.createElement('span');
+        name.className = 'chief-name';
+        name.textContent = chief.name || '';
+
+        const channel = document.createElement('span');
+        channel.className = 'chief-channel';
+        channel.textContent = chief.channelName || chief.channelKey || '';
+
+        const id = document.createElement('span');
+        id.className = 'chief-id';
+        id.textContent = chief.userId || '';
+
+        info.append(name, channel, id);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '✕';
+        removeBtn.addEventListener('click', () => removeChief(i));
+
+        item.append(info, removeBtn);
+        container.append(item);
+    });
 }
 
 // Update chief channel dropdown options
@@ -1306,15 +1325,17 @@ async function updateChiefChannelOptions() {
     const config = await window.api.config.get();
     const names = config.tokens?.names || {};
     
-    select.innerHTML = '<option value="">-- Channel --</option>';
-    
+    select.textContent = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '-- Channel --';
+    select.append(placeholder);
+
     for (let i = 1; i <= 3; i++) {
-        const name = names[`receiver${i}`];
-        if (name) {
-            select.innerHTML += `<option value="receiver${i}">${name}</option>`;
-        } else {
-            select.innerHTML += `<option value="receiver${i}">Receiver ${i}</option>`;
-        }
+        const opt = document.createElement('option');
+        opt.value = `receiver${i}`;
+        opt.textContent = names[`receiver${i}`] || `Receiver ${i}`;
+        select.append(opt);
     }
 }
 
@@ -1413,14 +1434,16 @@ async function handleImportFileCommandant(e) {
         document.getElementById('import-preview-cmd').style.display = 'block';
         
         const list = document.getElementById('import-channels-list-cmd');
-        list.innerHTML = '';
-        
+        list.textContent = '';
+
         if (importedConfig.channels?.targets) {
             importedConfig.channels.targets.forEach(t => {
-                list.innerHTML += `<li>📢 ${t.name}</li>`;
+                const li = document.createElement('li');
+                li.textContent = `📢 ${t.name || ''}`;
+                list.append(li);
             });
         }
-        
+
         // Enable finish button
         document.getElementById('btn-cmd-import-finish').disabled = false;
         
@@ -1475,29 +1498,41 @@ async function handleImportFile(e) {
         document.getElementById('import-preview').style.display = 'block';
         
         const list = document.getElementById('import-channels-list');
-        list.innerHTML = '';
-        
+        list.textContent = '';
+
         if (importedConfig.channels?.targets) {
             importedConfig.channels.targets.forEach(t => {
-                list.innerHTML += `<li>📢 ${t.name}</li>`;
+                const li = document.createElement('li');
+                li.textContent = `📢 ${t.name || ''}`;
+                list.append(li);
             });
         }
-        
+
         // Populate chief select
         const chiefSelect = document.getElementById('wizard-chief-select');
-        chiefSelect.innerHTML = '<option value="">-- Sélectionnez --</option>';
-        
+        chiefSelect.textContent = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '-- Sélectionnez --';
+        chiefSelect.append(placeholder);
+
         if (importedConfig.chiefs && importedConfig.chiefs.length > 0) {
             importedConfig.chiefs.forEach(chief => {
-                chiefSelect.innerHTML += `<option value="${chief.userId}">${chief.name} (${chief.channelName || chief.channelKey})</option>`;
+                const opt = document.createElement('option');
+                opt.value = chief.userId || '';
+                opt.textContent = `${chief.name || ''} (${chief.channelName || chief.channelKey || ''})`;
+                chiefSelect.append(opt);
             });
             // Enable next button only if chiefs exist
             document.getElementById('btn-chief-next').disabled = false;
         } else {
             // No chiefs configured - show warning
-            chiefSelect.innerHTML = '<option value="">⚠️ Aucun chef configuré</option>';
+            placeholder.textContent = '⚠️ Aucun chef configuré';
             document.getElementById('btn-chief-next').disabled = true;
-            list.innerHTML += '<li style="color: var(--warning)">⚠️ Demandez au Commandant de vous ajouter dans l\'onglet Chiefs</li>';
+            const warningLi = document.createElement('li');
+            warningLi.style.color = 'var(--warning)';
+            warningLi.textContent = '⚠️ Demandez au Commandant de vous ajouter dans l\'onglet Chiefs';
+            list.append(warningLi);
         }
         
     } else if (result.error) {
@@ -2274,39 +2309,36 @@ function selectWizardChannelFromAutocomplete(targetNumber) {
 }
 
 // Update listeners count on channel buttons
+// Cached DOM refs + last-seen state for the 10 Hz listeners ticker.
+// Avoids 5 getElementById calls and 5 textContent writes every 100 ms.
+const _listenerEls = {};
+let _lastListenerKey = '';
+let _lastListenerCount = -1;
+
+function _getListenerEl(key) {
+    if (!_listenerEls[key]) _listenerEls[key] = document.getElementById(`listeners-${key}`);
+    return _listenerEls[key];
+}
+
 function updateListenersCount(data) {
-    console.log('🔍 updateListenersCount called:', data);
-    
-    // ✅ SUPPRIME LA VÉRIFICATION isRunning - elle bloque tout
     if (!data) return;
-    
     const target = currentTarget;
     const count = data.listeners || 0;
-    
-    console.log('🔍 Target:', target, 'Count:', count);
-    
-    // Reset all counters
-    document.getElementById('listeners-mute').textContent = `👥 0`;
-    document.getElementById('listeners-all').textContent = `👥 0`;
-    document.getElementById('listeners-channel1').textContent = `👥 0`;
-    document.getElementById('listeners-channel2').textContent = `👥 0`;
-    document.getElementById('listeners-channel3').textContent = `👥 0`;
-    
-    // Update the appropriate counter based on current target
-    if (target === 'mute') {
-        console.log('🔍 Setting MUTE to:', count);
-        document.getElementById('listeners-mute').textContent = `👥 ${count}`;
-    } else if (target === 'all') {
-        console.log('🔍 Setting ALL to:', count);
-        document.getElementById('listeners-all').textContent = `👥 ${count}`;
-    } else if (target.startsWith('channel')) {
-        console.log('🔍 Setting channel to:', count);
-        const channelId = `listeners-${target}`;
-        const element = document.getElementById(channelId);
-        if (element) {
-            element.textContent = `👥 ${count}`;
-        }
+
+    // Diff-and-skip: nothing changed, nothing to do.
+    if (target === _lastListenerKey && count === _lastListenerCount) return;
+
+    // The active channel moved — zero out the previously active counter.
+    if (target !== _lastListenerKey && _lastListenerKey) {
+        const prev = _getListenerEl(_lastListenerKey);
+        if (prev) prev.textContent = '👥 0';
     }
+
+    const el = _getListenerEl(target);
+    if (el) el.textContent = `👥 ${count}`;
+
+    _lastListenerKey = target;
+    _lastListenerCount = count;
 }
 
 

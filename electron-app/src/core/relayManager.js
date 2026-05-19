@@ -74,56 +74,56 @@ class RelayManager {
         return Math.min(100, Math.round(normalized * 10));
     }
     
-    // Send overlay data (volume + listeners)
+    // Send overlay data (volume + listeners) — diff-and-skip to avoid
+    // hammering the renderer 10 times per second with unchanged data.
     sendOverlayData() {
         if (!this.isRunning) return;
-        
+
         const target = this.globalTarget;
         let listenersCount = 0;
-        
+
         const client = EmitterBot.getClient();
-        if (!client || !client.channels) {
-            this.emit('overlay-data', {
-                volume: this.currentVolume,
-                listeners: 0
-            });
+        if (client && client.channels) {
+            try {
+                if (target === 'mute') {
+                    const sourceChannelId = this.config.channels?.source?.id;
+                    if (sourceChannelId) {
+                        const sourceChannel = client.channels.cache.get(sourceChannelId);
+                        if (sourceChannel && sourceChannel.members) {
+                            listenersCount = sourceChannel.members.filter(m => !m.user.bot).size;
+                        }
+                    }
+                } else if (target === 'all') {
+                    for (const targetConfig of this.config.channels?.targets || []) {
+                        const channel = client.channels.cache.get(targetConfig.id);
+                        if (channel && channel.members) {
+                            listenersCount += channel.members.filter(m => !m.user.bot).size;
+                        }
+                    }
+                } else {
+                    const targetConfig = this.config.channels?.targets?.find(t => t.name === target);
+                    if (targetConfig) {
+                        const channel = client.channels.cache.get(targetConfig.id);
+                        if (channel && channel.members) {
+                            listenersCount = channel.members.filter(m => !m.user.bot).size;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('[RelayManager] Error counting listeners:', err.message);
+            }
+        }
+
+        // Skip emission if nothing visible changed since the last tick.
+        if (this._lastOverlayVolume === this.currentVolume &&
+            this._lastOverlayListeners === listenersCount &&
+            this._lastOverlayTarget === target) {
             return;
         }
-        
-        try {
-            if (target === 'mute') {
-                // ✅ En MUTE, compter les gens dans le canal SOURCE (Commandants/QG)
-                const sourceChannelId = this.config.channels?.source?.id;
-                if (sourceChannelId) {
-                    const sourceChannel = client.channels.cache.get(sourceChannelId);
-                    if (sourceChannel && sourceChannel.members) {
-                        listenersCount = sourceChannel.members.filter(m => !m.user.bot).size;
-                    }
-                }
-            } else if (target === 'all') {
-                // Count humans in all target channels
-                for (const targetConfig of this.config.channels?.targets || []) {
-                    const channel = client.channels.cache.get(targetConfig.id);
-                    if (channel && channel.members) {
-                        const humans = channel.members.filter(m => !m.user.bot).size;
-                        listenersCount += humans;
-                    }
-                }
-            } else if (target !== 'mute') {
-                // Find the specific channel
-                const targetConfig = this.config.channels?.targets?.find(t => t.name === target);
-                if (targetConfig) {
-                    const channel = client.channels.cache.get(targetConfig.id);
-                    if (channel && channel.members) {
-                        listenersCount = channel.members.filter(m => !m.user.bot).size;
-                    }
-                }
-            }
-        } catch (err) {
-            console.error('[RelayManager] Error counting listeners:', err.message);
-        }
-        
-        // Send to overlay
+        this._lastOverlayVolume = this.currentVolume;
+        this._lastOverlayListeners = listenersCount;
+        this._lastOverlayTarget = target;
+
         this.emit('overlay-data', {
             volume: this.currentVolume,
             listeners: listenersCount
@@ -495,23 +495,23 @@ class RelayManager {
     audioStream.on('error', baseCleanup);
     audioStream.on('close', baseCleanup);
     decoder.on('error', baseCleanup);
-    
-    // ✅ Créer processedStream AVANT le check mute (pour consommer le flux)
-    const processedStream = this.applyRadioEffect(decoder);
-    
-    // ✅ TOUJOURS calculer le volume sur processedStream (même en MUTE)
-    processedStream.on('data', (chunk) => {
-    if (!isCleanedUp) {
-    this.currentVolume = this.calculateVolume(chunk);
-    }
-    });
-    
-    // ✅ Si mute, on arrête ici (mais le volume est déjà calculé ci-dessus)
+
+    // In MUTE we don't relay anywhere, so spawning an ffmpeg subprocess
+    // per speaker just to compute volume is wasteful. Read PCM straight
+    // from the decoder and bail out — no radio effect needed.
     if (target === 'mute') {
-    processedStream.on('end', baseCleanup);
-    processedStream.on('error', baseCleanup);
-    return;
+        decoder.on('data', (chunk) => {
+            if (!isCleanedUp) this.currentVolume = this.calculateVolume(chunk);
+        });
+        decoder.on('end', baseCleanup);
+        return;
     }
+
+    const processedStream = this.applyRadioEffect(decoder);
+
+    processedStream.on('data', (chunk) => {
+        if (!isCleanedUp) this.currentVolume = this.calculateVolume(chunk);
+    });
     
     let targetReceivers = [];
     
