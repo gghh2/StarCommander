@@ -33,6 +33,10 @@ class RelayManager {
         this.radioEffectIntensity = config.settings?.radioEffectIntensity ?? 50;
         this.clickSoundEnabled = config.settings?.clickSoundEnabled !== false;
         
+        // Overlay data tracking
+        this.currentVolume = 0;
+        this.volumeUpdateInterval = null;
+        
         // Sound file paths (different in dev vs packaged)
         // Try packaged path first, fallback to dev path
         const packagedPath = path.join(process.resourcesPath || '', 'assets/sounds');
@@ -49,6 +53,83 @@ class RelayManager {
         }
     }
     
+    // Calculate volume from PCM audio buffer
+    calculateVolume(buffer) {
+        if (!buffer || buffer.length === 0) return 0;
+        
+        // Convert to 16-bit samples
+        const samples = buffer.length / 2;
+        let sum = 0;
+        
+        for (let i = 0; i < buffer.length; i += 2) {
+            const sample = buffer.readInt16LE(i);
+            sum += Math.abs(sample);
+        }
+        
+        // Average and normalize to 0-100
+        const average = sum / samples;
+        const normalized = Math.min(100, (average / 32768) * 100);
+        
+        // Multiply by 10 for better sensitivity (capped at 100)
+        return Math.min(100, Math.round(normalized * 10));
+    }
+    
+    // Send overlay data (volume + listeners)
+    sendOverlayData() {
+        if (!this.isRunning) return;
+        
+        const target = this.globalTarget;
+        let listenersCount = 0;
+        
+        const client = EmitterBot.getClient();
+        if (!client || !client.channels) {
+            this.emit('overlay-data', {
+                volume: this.currentVolume,
+                listeners: 0
+            });
+            return;
+        }
+        
+        try {
+            if (target === 'mute') {
+                // ✅ En MUTE, compter les gens dans le canal SOURCE (Commandants/QG)
+                const sourceChannelId = this.config.channels?.source?.id;
+                if (sourceChannelId) {
+                    const sourceChannel = client.channels.cache.get(sourceChannelId);
+                    if (sourceChannel && sourceChannel.members) {
+                        listenersCount = sourceChannel.members.filter(m => !m.user.bot).size;
+                    }
+                }
+            } else if (target === 'all') {
+                // Count humans in all target channels
+                for (const targetConfig of this.config.channels?.targets || []) {
+                    const channel = client.channels.cache.get(targetConfig.id);
+                    if (channel && channel.members) {
+                        const humans = channel.members.filter(m => !m.user.bot).size;
+                        listenersCount += humans;
+                    }
+                }
+            } else if (target !== 'mute') {
+                // Find the specific channel
+                const targetConfig = this.config.channels?.targets?.find(t => t.name === target);
+                if (targetConfig) {
+                    const channel = client.channels.cache.get(targetConfig.id);
+                    if (channel && channel.members) {
+                        listenersCount = channel.members.filter(m => !m.user.bot).size;
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('[RelayManager] Error counting listeners:', err.message);
+        }
+        
+        // Send to overlay
+        this.emit('overlay-data', {
+            volume: this.currentVolume,
+            listeners: listenersCount
+        });
+    }
+        
     // Apply radio effect filter to audio stream (with optional click prepend)
     applyRadioEffect(inputStream) {
         if (!this.radioEffectEnabled) {
@@ -334,9 +415,23 @@ class RelayManager {
         }
         
         this.isRunning = true;
+        
+        // Start sending overlay data every 100ms
+        this.volumeUpdateInterval = setInterval(() => {
+            this.sendOverlayData();
+            // Decay volume gradually
+            this.currentVolume = Math.max(0, this.currentVolume - 10);
+        }, 100);
     }
     
     async stop() {
+        // Stop overlay updates
+        if (this.volumeUpdateInterval) {
+            clearInterval(this.volumeUpdateInterval);
+            this.volumeUpdateInterval = null;
+        }
+        this.currentVolume = 0;
+        
         this.killActiveStreams();
         
         await EmitterBot.stop();
@@ -351,171 +446,162 @@ class RelayManager {
         this.isRunning = false;
     }
     
-    onCommanderSpeaking(audioStream, auth) {
-        const displayName = auth.name || 'Unknown';
-        const roleName = auth.roleName || '';
-        
-        const target = this.globalTarget;
-        
-        if (target === 'mute') {
-            return;
+   onCommanderSpeaking(audioStream, auth) {
+    const displayName = auth.name || 'Unknown';
+    const roleName = auth.roleName || '';
+    
+    const target = this.globalTarget;
+    
+    // ✅ Toujours décoder pour calculer le volume (même en mute)
+    let isCleanedUp = false;
+    
+    const decoder = new prism.opus.Decoder({
+        rate: 48000,
+        channels: 2,
+        frameSize: 960
+    });
+    
+    // Track decoder
+    this.activeStreams.push(audioStream, decoder);
+    
+    // Pipe audio to decoder (with error protection)
+    audioStream.on('data', (chunk) => {
+        if (!isCleanedUp && !decoder.destroyed) {
+            try {
+                decoder.write(chunk);
+            } catch (e) {
+                console.error('[RelayManager] Decoder write error:', e.message);
+            }
         }
+    });
+    
+    // ❌ NE PAS calculer le volume ici - ça ne marche pas en MUTE
+    // decoder.on('data', (chunk) => { ... });
+    
+    // Base cleanup
+    const baseCleanup = () => {
+        if (isCleanedUp) return;
+        isCleanedUp = true;
         
-        let targetReceivers = [];
-        
-        if (target === 'all') {
-            targetReceivers = this.receivers.filter(r => r.isReady());
-        } else {
-            targetReceivers = this.receivers.filter(r => r.name === target && r.isReady());
+        if (!decoder.destroyed) {
+            try { decoder.destroy(); } catch(e) {}
         }
-        
-        if (targetReceivers.length === 0) {
-            return;
-        }
-        
-        const targetNames = targetReceivers.map(r => r.displayName || r.name).join(', ');
-        this.emit('speaking', { user: displayName, role: roleName, targets: targetNames });
-        
-        // Single receiver: apply radio effect and play
-        if (targetReceivers.length === 1) {
-            let isCleanedUp = false;
-            
-            // Decode opus to PCM for radio effect
-            const decoder = new prism.opus.Decoder({
-                rate: 48000,
-                channels: 2,
-                frameSize: 960
-            });
-            
-            // Apply radio effect
-            const processedStream = this.applyRadioEffect(decoder);
-            
-            // Create fresh PassThrough for each transmission
-            const outputStream = new PassThrough({ highWaterMark: 1024 * 64 });
-            
-            // Track streams
-            this.activeStreams.push(audioStream, decoder, outputStream);
-            
-            // Play the output stream
-            targetReceivers[0].playRawStream(outputStream);
-            
-            // Pipe audio to decoder (with error protection)
-            audioStream.on('data', (chunk) => {
-                if (!isCleanedUp && !decoder.destroyed) {
-                    try {
-                        decoder.write(chunk);
-                    } catch (e) {
-                        console.error('[RelayManager] Decoder write error:', e.message);
-                    }
-                }
-            });
-            
-            // Pipe processed data to output
-            processedStream.on('data', (chunk) => {
-                if (!isCleanedUp && !outputStream.destroyed) {
-                    outputStream.write(chunk);
-                }
-            });
-            
-            // Cleanup on end
-            const cleanup = () => {
-                if (isCleanedUp) return;
-                isCleanedUp = true;
-                
-                if (!outputStream.destroyed) outputStream.end();
-                if (!decoder.destroyed) {
-                    try { decoder.destroy(); } catch(e) {}
-                }
-                this.activeStreams = this.activeStreams.filter(s => 
-                    s !== audioStream && s !== decoder && s !== outputStream
-                );
-            };
-            
-            processedStream.on('end', cleanup);
-            audioStream.on('end', cleanup);
-            audioStream.on('error', cleanup);
-            audioStream.on('close', cleanup);
-            decoder.on('error', cleanup);
-            return;
-        }
-        
-        // Multiple receivers: decode to PCM, apply effect, duplicate
-        try {
-            let isCleanedUp = false;
-            
-            const decoder = new prism.opus.Decoder({
-                rate: 48000,
-                channels: 2,
-                frameSize: 960
-            });
-            
-            // Apply radio effect to decoded stream
-            const processedStream = this.applyRadioEffect(decoder);
-            
-            const pcmStreams = targetReceivers.map(() => new PassThrough({
-                highWaterMark: 1024 * 64
-            }));
-            
-            // Track streams
-            this.activeStreams.push(audioStream, decoder, ...pcmStreams);
-            
-            targetReceivers.forEach((receiver, i) => {
-                receiver.playRawStream(pcmStreams[i]);
-            });
-            
-            // Pipe audio to decoder (with error protection)
-            audioStream.on('data', (chunk) => {
-                if (!isCleanedUp && !decoder.destroyed) {
-                    try {
-                        decoder.write(chunk);
-                    } catch (e) {
-                        console.error('[RelayManager] Decoder write error:', e.message);
-                    }
-                }
-            });
-            
-            processedStream.on('data', (chunk) => {
-                if (isCleanedUp) return;
-                const buffer = Buffer.from(chunk);
-                for (let i = 0; i < pcmStreams.length; i++) {
-                    if (!pcmStreams[i].destroyed) {
-                        pcmStreams[i].write(buffer);
-                    }
-                }
-            });
-            
-            // Cleanup function
-            const cleanup = () => {
-                if (isCleanedUp) return;
-                isCleanedUp = true;
-                
-                for (let i = 0; i < pcmStreams.length; i++) {
-                    if (!pcmStreams[i].destroyed) {
-                        pcmStreams[i].end();
-                    }
-                }
-                if (!decoder.destroyed) {
-                    try { decoder.destroy(); } catch(e) {}
-                }
-                this.activeStreams = this.activeStreams.filter(s => 
-                    s !== audioStream && s !== decoder && !pcmStreams.includes(s)
-                );
-            };
-            
-            processedStream.on('end', cleanup);
-            processedStream.on('error', (err) => {
-                cleanup();
-                this.emit('error', { message: `Radio effect error: ${err.message}` });
-            });
-            audioStream.on('end', cleanup);
-            audioStream.on('error', cleanup);
-            audioStream.on('close', cleanup);
-            decoder.on('error', cleanup);
-            
-        } catch (err) {
-            this.emit('error', { message: `Transcoding error: ${err.message}` });
-        }
+        this.activeStreams = this.activeStreams.filter(s => 
+            s !== audioStream && s !== decoder
+        );
+    };
+    
+    audioStream.on('end', baseCleanup);
+    audioStream.on('error', baseCleanup);
+    audioStream.on('close', baseCleanup);
+    decoder.on('error', baseCleanup);
+    
+    // ✅ Créer processedStream AVANT le check mute (pour consommer le flux)
+    const processedStream = this.applyRadioEffect(decoder);
+    
+    // ✅ TOUJOURS calculer le volume sur processedStream (même en MUTE)
+    processedStream.on('data', (chunk) => {
+    if (!isCleanedUp) {
+    this.currentVolume = this.calculateVolume(chunk);
     }
+    });
+    
+    // ✅ Si mute, on arrête ici (mais le volume est déjà calculé ci-dessus)
+    if (target === 'mute') {
+    processedStream.on('end', baseCleanup);
+    processedStream.on('error', baseCleanup);
+    return;
+    }
+    
+    let targetReceivers = [];
+    
+    if (target === 'all') {
+        targetReceivers = this.receivers.filter(r => r.isReady());
+    } else {
+        targetReceivers = this.receivers.filter(r => r.name === target && r.isReady());
+    }
+    
+    if (targetReceivers.length === 0) {
+        return;
+    }
+    
+    const targetNames = targetReceivers.map(r => r.displayName || r.name).join(', ');
+    this.emit('speaking', { user: displayName, role: roleName, targets: targetNames });
+    
+    // Single receiver: direct connection
+    if (targetReceivers.length === 1) {
+        // Create fresh PassThrough for transmission
+        const outputStream = new PassThrough({ highWaterMark: 1024 * 64 });
+        
+        // Track stream
+        this.activeStreams.push(outputStream);
+        
+        // Play the output stream
+        targetReceivers[0].playRawStream(outputStream);
+        
+        // Pipe processed data to output
+        processedStream.on('data', (chunk) => {
+            if (!isCleanedUp && !outputStream.destroyed) {
+                outputStream.write(chunk);
+            }
+        });
+        
+        // Extended cleanup with output stream
+        const cleanupWithOutput = () => {
+            baseCleanup();
+            if (!outputStream.destroyed) outputStream.end();
+            this.activeStreams = this.activeStreams.filter(s => s !== outputStream);
+        };
+        
+        processedStream.on('end', cleanupWithOutput);
+        processedStream.on('error', cleanupWithOutput);
+        return;
+    }
+    
+    // Multiple receivers: duplicate PCM stream
+    try {
+        const pcmStreams = targetReceivers.map(() => new PassThrough({
+            highWaterMark: 1024 * 64
+        }));
+        
+        // Track streams
+        this.activeStreams.push(...pcmStreams);
+        
+        targetReceivers.forEach((receiver, i) => {
+            receiver.playRawStream(pcmStreams[i]);
+        });
+        
+        processedStream.on('data', (chunk) => {
+            if (isCleanedUp) return;
+            const buffer = Buffer.from(chunk);
+            for (let i = 0; i < pcmStreams.length; i++) {
+                if (!pcmStreams[i].destroyed) {
+                    pcmStreams[i].write(buffer);
+                }
+            }
+        });
+        
+        // Extended cleanup with PCM streams
+        const cleanupWithStreams = () => {
+            baseCleanup();
+            for (let i = 0; i < pcmStreams.length; i++) {
+                if (!pcmStreams[i].destroyed) {
+                    pcmStreams[i].end();
+                }
+            }
+            this.activeStreams = this.activeStreams.filter(s => !pcmStreams.includes(s));
+        };
+        
+        processedStream.on('end', cleanupWithStreams);
+        processedStream.on('error', (err) => {
+            cleanupWithStreams();
+            this.emit('error', { message: `Radio effect error: ${err.message}` });
+        });
+        
+    } catch (err) {
+        this.emit('error', { message: `Transcoding error: ${err.message}` });
+    }
+}
     
     // Setup listener for whisper commands in relay channel
     setupRelayListener() {

@@ -44,22 +44,27 @@
                     <button class="channel-btn active" data-target="mute">
                         <span class="channel-name" data-i18n="channels.mute">MUTE</span>
                         <span class="channel-key">1</span>
+                        <span class="channel-listeners" id="listeners-mute">👥 0</span>
                     </button>
                     <button class="channel-btn" data-target="all">
                         <span class="channel-name" data-i18n="channels.all">ALL</span>
                         <span class="channel-key">0</span>
+                        <span class="channel-listeners" id="listeners-all">👥 0</span>
                     </button>
                     <button class="channel-btn" data-target="channel1">
                         <span class="channel-name" id="channel1-name">Channel 1</span>
                         <span class="channel-key">2</span>
+                        <span class="channel-listeners" id="listeners-channel1">👥 0</span>
                     </button>
                     <button class="channel-btn" data-target="channel2">
                         <span class="channel-name" id="channel2-name">Channel 2</span>
                         <span class="channel-key">3</span>
+                        <span class="channel-listeners" id="listeners-channel2">👥 0</span>
                     </button>
                     <button class="channel-btn" data-target="channel3">
                         <span class="channel-name" id="channel3-name">Channel 3</span>
                         <span class="channel-key">4</span>
+                        <span class="channel-listeners" id="listeners-channel3">👥 0</span>
                     </button>
                     <!-- Briefing button in grid -->
                     <button class="channel-btn btn-briefing-grid" id="btn-briefing">
@@ -426,7 +431,16 @@
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
+                    <!-- Overlay Scale Slider -->
+					<div class="option-item" id="overlay-scale-row">
+					    <label for="option-overlay-scale">Overlay Scale</label>
+					    <div class="slider-container">
+					        <input type="range" id="option-overlay-scale" min="50" max="150" value="100" step="10" class="slider">
+					        <span class="slider-value" id="overlay-scale-value">100%</span>
+					    </div>
+					</div>
                 </div>
+
                 
                 <h4 data-i18n="options.audio">🔊 Audio Effects</h4>
                 <p class="help-text" data-i18n="options.audio_desc">These effects apply only to relayed voices between channels.</p>
@@ -529,7 +543,17 @@
                         <button class="btn" id="btn-import-config" data-i18n="options.importConfig">📥 Import config</button>
                     </div>
                 </div>
-                
+
+                <!-- Diagnostics / Logs -->
+                <div id="diagnostics-section" style="margin-top: 30px;">
+                    <h4 data-i18n="options.diagnostics">🩺 Diagnostics</h4>
+                    <p class="help-text" data-i18n="options.diagnostics_desc">Application logs are written to disk for troubleshooting. Download them to share with support.</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn" id="btn-download-logs" data-i18n="options.downloadLogs">💾 Download logs</button>
+                        <button class="btn" id="btn-open-logs-folder" data-i18n="options.openLogsFolder">📁 Open logs folder</button>
+                    </div>
+                </div>
+
                 <!-- Reset complet -->
                 <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid var(--border);">
                     <div style="background: rgba(238, 74, 111, 0.1); border-left: 4px solid var(--error); padding: 15px; border-radius: 6px; margin-bottom: 15px;">

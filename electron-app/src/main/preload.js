@@ -48,7 +48,8 @@ contextBridge.exposeInMainWorld('api', {
     // Overlay
     overlay: {
         toggle: (enabled) => ipcRenderer.invoke('overlay-toggle', enabled),
-        getStatus: () => ipcRenderer.invoke('overlay-status')
+        getStatus: () => ipcRenderer.invoke('overlay-status'),
+        setScale: (scale) => ipcRenderer.invoke('overlay-set-scale', scale)
     },
     
     // Config export/import
@@ -64,5 +65,11 @@ contextBridge.exposeInMainWorld('api', {
 
     // Discord chanels
     getGuildChannels: (token) => ipcRenderer.invoke('get-guild-channels', token), // ← Ajoute le paramètre token
+
+    // Logs
+    logs: {
+        export: () => ipcRenderer.invoke('logs-export'),
+        openFolder: () => ipcRenderer.invoke('logs-open-folder')
+    }
 
 });

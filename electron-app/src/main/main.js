@@ -3,10 +3,12 @@
  * V4.0
  */
 
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { uIOhook, UiohookKey } = require('uiohook-napi');
 const tempConnection = require('../core/tempConnection');
+const logger = require('./logger');
 
 
 // Detect dev mode and separate config paths
@@ -14,8 +16,10 @@ const isDev = !app.isPackaged;
 if (isDev) {
     // Use separate userData folder for dev mode
     app.setPath('userData', app.getPath('userData') + '-dev');
-    console.log('[Main] Dev mode - userData:', app.getPath('userData'));
 }
+
+logger.init();
+if (isDev) console.log('[Main] Dev mode - userData:', app.getPath('userData'));
 
 const Store = require('electron-store');
 
@@ -50,6 +54,7 @@ const store = new Store({
             minimizeToTray: true,
             overlayEnabled: false,
             overlayPosition: { x: 20, y: 20 },
+            overlayScale: 100,
             radioEffectEnabled: true,
             radioEffectIntensity: 50,
             clickSoundEnabled: true
@@ -152,10 +157,14 @@ function createWindow() {
 // Create overlay window
 function createOverlay() {
     const savedPos = store.get('settings.overlayPosition') || { x: 20, y: 20 };
+    const overlayScale = store.get('settings.overlayScale') || 100; // Default 100%
+    const baseWidth = 150;
+    const baseHeight = 48; // Hauteur fixe, ne change pas avec le scale
+    const scaledWidth = Math.round(baseWidth * (overlayScale / 100));
     
     overlayWindow = new BrowserWindow({
-        width: 200,
-        height: 50,
+        width: scaledWidth,
+        height: baseHeight, // ✅ Hauteur fixe
         x: savedPos.x,
         y: savedPos.y,
         resizable: false,
@@ -207,13 +216,19 @@ function toggleOverlay(show) {
 }
 
 // Update overlay content
-function updateOverlay(channelName) {
+function updateOverlay(channelName, extraData = {}) {
     currentChannel = channelName;
     console.log('[Overlay] Updating to:', channelName);
     
     if (overlayWindow && !overlayWindow.isDestroyed()) {
-        // Send update even if hidden (will show correct value when shown)
-        overlayWindow.webContents.send('overlay-update', channelName);
+        // Send update with complete data
+        overlayWindow.webContents.send('overlay-update', {
+            channel: channelName,
+            connected: relayManager ? true : false,
+            volume: extraData.volume !== undefined ? extraData.volume : 0,
+            listeners: extraData.listeners !== undefined ? extraData.listeners : 0,
+            ...extraData
+        });
     }
 }
 
@@ -545,7 +560,18 @@ function setupIPC() {
             
             const RelayManager = require('../core/relayManager');
             relayManager = new RelayManager(store.store, (event, data) => {
+                // Forward all events to renderer
                 mainWindow.webContents.send('relay-event', { event, data });
+                
+                // Forward overlay-data to overlay window
+                if (event === 'overlay-data' && overlayWindow && !overlayWindow.isDestroyed()) {
+                    overlayWindow.webContents.send('overlay-update', {
+                        channel: currentChannel,
+                        volume: data.volume,
+                        listeners: data.listeners,
+                        connected: true
+                    });
+                }
             });
             await relayManager.start();
             
@@ -573,6 +599,16 @@ function setupIPC() {
         if (relayManager) {
             await relayManager.stop();
             relayManager = null;
+        }
+        
+        // Send disconnect signal to overlay
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send('overlay-update', {
+                channel: 'MUTE',
+                volume: 0,
+                listeners: 0,
+                connected: false
+            });
         }
         
         // Hide overlay and update state
@@ -626,6 +662,76 @@ function setupIPC() {
         return store.get('settings.overlayEnabled');
     });
     
+    // Overlay resize (expand/collapse)
+    ipcMain.on('overlay-resize', (event, expanded) => {
+        if (!overlayWindow || overlayWindow.isDestroyed()) return;
+        
+        const bounds = overlayWindow.getBounds();
+        const baseHeight = 48;
+        const expandedHeight = 130;
+        const newHeight = expanded ? expandedHeight : baseHeight;
+        
+        // ✅ Ne PAS scaler la hauteur, juste la largeur reste scalée
+        overlayWindow.setBounds({
+            x: bounds.x,
+            y: bounds.y,
+            width: bounds.width, // Garder la largeur actuelle (déjà scalée)
+            height: newHeight
+        });
+    });
+    
+    // Overlay scale change
+    ipcMain.handle('overlay-set-scale', (event, scale) => {
+        if (!overlayWindow || overlayWindow.isDestroyed()) return { success: false };
+        
+        store.set('settings.overlayScale', scale);
+        
+        const bounds = overlayWindow.getBounds();
+        const baseWidth = 150;
+        const scaledWidth = Math.round(baseWidth * (scale / 100));
+        
+        // ✅ Ne changer QUE la largeur, pas la hauteur
+        overlayWindow.setBounds({
+            x: bounds.x,
+            y: bounds.y,
+            width: scaledWidth,
+            height: bounds.height // ✅ Garder la hauteur actuelle
+        });
+        
+        return { success: true };
+    });
+
+    // Export current log file via save dialog
+    ipcMain.handle('logs-export', async () => {
+        const src = logger.getLogPath();
+        if (!src || !fs.existsSync(src)) {
+            return { success: false, error: 'no log file' };
+        }
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const result = await dialog.showSaveDialog(mainWindow, {
+            title: 'Save Star Commander log',
+            defaultPath: `star-commander-${stamp}.log`,
+            filters: [{ name: 'Log files', extensions: ['log', 'txt'] }]
+        });
+        if (result.canceled || !result.filePath) {
+            return { success: false, canceled: true };
+        }
+        try {
+            fs.copyFileSync(src, result.filePath);
+            return { success: true, path: result.filePath };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    });
+
+    // Open logs folder in explorer
+    ipcMain.handle('logs-open-folder', () => {
+        const p = logger.getLogPath();
+        if (!p) return { success: false };
+        shell.showItemInFolder(p);
+        return { success: true };
+    });
+
     // Whisper control (works even without full relay for Chiefs)
     ipcMain.handle('relay-whisper', async (event, enabled) => {
         // If relay is running, use it

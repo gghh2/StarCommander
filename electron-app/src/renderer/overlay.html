@@ -12,70 +12,487 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-family: 'Orbitron', 'Rajdhani', 'Segoe UI', sans-serif;
             background: transparent;
             overflow: hidden;
-            -webkit-app-region: drag;
         }
         
-        .overlay {
-            background: rgba(26, 26, 46, 0.85);
-            border: 2px solid #e94560;
-            border-radius: 8px;
-            padding: 8px 15px;
-            display: inline-flex;
+        /* Main container */
+        .overlay-hud {
+            position: relative;
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.92));
+            border: 2px solid rgba(59, 130, 246, 0.6);
+            border-radius: 4px;
+            min-width: 140px;
+            box-shadow: 
+                0 0 20px rgba(59, 130, 246, 0.3),
+                inset 0 0 20px rgba(59, 130, 246, 0.05);
+            backdrop-filter: blur(12px);
+            animation: hud-appear 0.3s ease-out;
+            transition: height 0.3s ease;
+        }
+        
+        @keyframes hud-appear {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Glow effect on border */
+        .overlay-hud::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+            border-radius: 4px;
+            z-index: -1;
+            opacity: 0;
+            animation: border-pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes border-pulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        /* Header with channel name */
+        .hud-header {
+            display: flex;
             align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(10px);
+            gap: 10px;
+            padding: 12px 16px;
+            position: relative;
         }
         
-        .overlay.muted {
-            border-color: #666;
-            opacity: 0.7;
+        /* Draggable area (most of header except expand icon) */
+        .drag-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 40px;
+            bottom: 0;
+            -webkit-app-region: drag;
+            z-index: 1;
         }
         
-        .icon {
-            font-size: 14px;
+        /* Mic indicator */
+        .mic-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+            animation: mic-pulse 1.5s ease-in-out infinite;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .mic-indicator.inactive {
+            background: #6b7280;
+            box-shadow: 0 0 5px rgba(107, 114, 128, 0.3);
+            animation: none;
+        }
+        
+        @keyframes mic-pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
         }
         
         .channel-name {
-            color: #e94560;
-            font-weight: 600;
-            font-size: 14px;
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            color: #60a5fa;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+            flex: 1;
+            position: relative;
+            z-index: 2;
         }
         
-        .overlay.muted .channel-name {
-            color: #888;
+        .channel-name.muted {
+            color: #9ca3af;
+            text-shadow: none;
+        }
+        
+        /* Expand/collapse icon */
+        .expand-icon {
+            color: #60a5fa;
+            font-size: 14px;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+            z-index: 3;
+            -webkit-app-region: no-drag;
+            padding: 4px 8px;
+            margin: -4px -8px;
+        }
+        
+        .expand-icon:hover {
+            opacity: 1;
+        }
+        
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+        
+        /* Details section (collapsible) */
+        .hud-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 16px;
+        }
+        
+        .hud-details.expanded {
+            max-height: 100px;
+            padding: 0 16px 12px 16px;
+        }
+        
+        /* Separator line */
+        .separator {
+            height: 1px;
+            background: rgba(59, 130, 246, 0.3);
+            margin-bottom: 10px;
+        }
+        
+        /* Stats row */
+        .hud-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #93c5fd;
+            margin-bottom: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .stat-icon {
+            font-size: 12px;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #dbeafe;
+        }
+        
+        /* Volume bar */
+        .volume-container {
+            margin-top: 8px;
+        }
+        
+        .volume-label {
+            font-size: 10px;
+            color: #93c5fd;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .volume-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(30, 58, 138, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .volume-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 3px;
+            transition: width 0.1s ease-out;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+            position: relative;
+        }
+        
+        /* Animation only when volume is active */
+        .volume-fill.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+            animation: volume-shine 1s ease-in-out infinite;
+        }
+        
+        @keyframes volume-shine {
+            0% {
+                right: 100%;
+            }
+            100% {
+                right: -20px;
+            }
+        }
+        
+        /* Muted state */
+        .overlay-hud.muted {
+            border-color: rgba(107, 114, 128, 0.6);
+            box-shadow: 
+                0 0 10px rgba(107, 114, 128, 0.2),
+                inset 0 0 20px rgba(107, 114, 128, 0.05);
+        }
+        
+        .overlay-hud.muted::before {
+            display: none;
+        }
+        
+        .overlay-hud.muted .volume-fill {
+            background: linear-gradient(90deg, #6b7280, #9ca3af);
+            box-shadow: none;
+        }
+        
+        /* Whisper mode special styling */
+        .overlay-hud.whisper {
+            border-color: rgba(168, 85, 247, 0.6);
+            box-shadow: 
+                0 0 20px rgba(168, 85, 247, 0.3),
+                inset 0 0 20px rgba(168, 85, 247, 0.05);
+        }
+        
+        .overlay-hud.whisper .channel-name {
+            color: #c084fc;
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
+        }
+        
+        .overlay-hud.whisper .expand-icon {
+            color: #c084fc;
+        }
+        
+        .overlay-hud.whisper .volume-fill {
+            background: linear-gradient(90deg, #a855f7, #c084fc);
+        }
+        
+        /* Briefing mode special styling */
+        .overlay-hud.briefing {
+            border-color: rgba(249, 115, 22, 0.6);
+            box-shadow: 
+                0 0 20px rgba(249, 115, 22, 0.3),
+                inset 0 0 20px rgba(249, 115, 22, 0.05);
+        }
+        
+        .overlay-hud.briefing .channel-name {
+            color: #fb923c;
+            text-shadow: 0 0 10px rgba(251, 146, 60, 0.5);
+            animation: briefing-blink 1s ease-in-out infinite;
+        }
+        
+        .overlay-hud.briefing .expand-icon {
+            color: #fb923c;
+        }
+        
+        @keyframes briefing-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .overlay-hud.briefing .volume-fill {
+            background: linear-gradient(90deg, #f97316, #fb923c);
         }
     </style>
 </head>
 <body>
-    <div class="overlay" id="overlay">
-        <span class="icon">📻</span>
-        <span class="channel-name" id="channel-name">MUTE</span>
+    <div class="overlay-hud" id="overlay">
+        <!-- Header with channel name and expand button -->
+        <div class="hud-header">
+            <!-- Draggable area (covers most of header) -->
+            <div class="drag-handle"></div>
+            
+            <div class="mic-indicator" id="mic-indicator"></div>
+            <div class="channel-name" id="channel-name">MUTE</div>
+            <div class="expand-icon" id="expand-icon">▼</div>
+        </div>
+        
+        <!-- Details (collapsible) -->
+        <div class="hud-details" id="details">
+            <div class="separator"></div>
+            
+            <!-- Stats -->
+            <div class="hud-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">👥</span>
+                    <span class="stat-value" id="listeners-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⏱️</span>
+                    <span class="stat-value" id="connection-time">00:00</span>
+                </div>
+            </div>
+            
+            <!-- Volume bar -->
+            <div class="volume-container">
+                <div class="volume-label">Audio Level</div>
+                <div class="volume-bar">
+                    <div class="volume-fill" id="volume-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
-        console.log('[Overlay] Script loaded, api:', !!window.api);
+        console.log('[Overlay] HUD loaded');
         
-        if (window.api && window.api.onOverlayUpdate) {
-            window.api.onOverlayUpdate((channel) => {
-                console.log('[Overlay] Received update:', channel);
-                const overlay = document.getElementById('overlay');
-                const nameEl = document.getElementById('channel-name');
+        let connectionStartTime = null;
+        let timerInterval = null;
+        let isExpanded = false; // Always start collapsed
+        
+        // Apply initial state (always collapsed)
+        const details = document.getElementById('details');
+        const expandIcon = document.getElementById('expand-icon');
+        
+        // No need to apply expanded state - start collapsed
+        
+        // Toggle expand/collapse (only on icon click)
+        document.getElementById('expand-icon').addEventListener('click', (e) => {
+            e.stopPropagation();
+            isExpanded = !isExpanded;
+            
+            details.classList.toggle('expanded', isExpanded);
+            expandIcon.classList.toggle('expanded', isExpanded);
+            
+            // Notify main process to resize window
+            if (window.api && window.api.resizeOverlay) {
+                window.api.resizeOverlay(isExpanded);
+            }
+        });
+        
+        // Update connection timer
+        function updateTimer() {
+            if (!connectionStartTime) return;
+            
+            const elapsed = Math.floor((Date.now() - connectionStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            const timerEl = document.getElementById('connection-time');
+            if (timerEl) {
+                timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+        }
+        
+        // Start timer
+        function startTimer() {
+            if (!connectionStartTime) {
+                connectionStartTime = Date.now();
+            }
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+        
+        // Stop timer
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            connectionStartTime = null;
+            
+            const timerEl = document.getElementById('connection-time');
+            if (timerEl) {
+                timerEl.textContent = '00:00';
+            }
+        }
+        
+        // Update overlay display
+        function updateOverlay(data) {
+            console.log('[Overlay] Update:', data);
+            
+            const overlay = document.getElementById('overlay');
+            const nameEl = document.getElementById('channel-name');
+            const micIndicator = document.getElementById('mic-indicator');
+            const listenersEl = document.getElementById('listeners-count');
+            const volumeFill = document.getElementById('volume-fill');
+            
+            // Update channel name
+            if (nameEl && data.channel) {
+                nameEl.textContent = data.channel;
+            }
+            
+            // Update muted state
+            const isMuted = data.channel === 'MUTE';
+            const isWhisper = data.channel === 'WHISPER';
+            const isBriefing = data.channel === 'BRIEFING';
+            
+            overlay.classList.toggle('muted', isMuted);
+            overlay.classList.toggle('whisper', isWhisper);
+            overlay.classList.toggle('briefing', isBriefing);
+            nameEl.classList.toggle('muted', isMuted);
+            
+            // Update mic indicator
+            if (micIndicator) {
+                micIndicator.classList.toggle('inactive', isMuted);
+            }
+            
+            // Update listeners count
+            if (listenersEl && data.listeners !== undefined) {
+                listenersEl.textContent = data.listeners;
+            }
+            
+            // Update volume with animation only when active
+            if (volumeFill && data.volume !== undefined) {
+                const volumePercent = Math.min(100, Math.max(0, data.volume));
+                volumeFill.style.width = volumePercent + '%';
                 
-                nameEl.textContent = channel;
-                
-                if (channel === 'MUTE') {
-                    overlay.classList.add('muted');
+                // Add/remove active class for animation
+                if (volumePercent > 5) {
+                    volumeFill.classList.add('active');
                 } else {
-                    overlay.classList.remove('muted');
+                    volumeFill.classList.remove('active');
+                }
+            }
+            
+            // Handle connection state
+            if (data.connected !== undefined) {
+                if (data.connected) {
+                    startTimer();
+                } else {
+                    stopTimer();
+                }
+            }
+        }
+        
+        // Listen for updates
+        if (window.api && window.api.onOverlayUpdate) {
+            window.api.onOverlayUpdate((data) => {
+                // Handle both old format (string) and new format (object)
+                if (typeof data === 'string') {
+                    updateOverlay({ channel: data, connected: true });
+                } else {
+                    updateOverlay(data);
                 }
             });
+            
+            console.log('[Overlay] Listening for updates');
         } else {
             console.error('[Overlay] API not available!');
         }

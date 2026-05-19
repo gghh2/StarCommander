@@ -244,6 +244,7 @@ body {
 }
 
 .channel-btn {
+    position: relative;
     padding: 12px 8px;
     border: 2px solid var(--border);
     border-radius: 6px;
@@ -268,6 +269,33 @@ body {
     border-color: var(--accent);
     background: var(--accent);
     box-shadow: 0 0 15px rgba(17, 169, 237, 0.6), inset 0 0 10px rgba(17, 169, 237, 0.3);
+}
+
+/* Channel listeners count badge - TOUJOURS VISIBLE */
+.channel-listeners {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(17, 169, 237, 0.15);
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(17, 169, 237, 0.3);
+    min-width: 30px;
+    text-align: center;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.channel-btn.active .channel-listeners {
+    background: rgba(17, 169, 237, 0.3);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 8px rgba(17, 169, 237, 0.5);
 }
 
 .channel-name {

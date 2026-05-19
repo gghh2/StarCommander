@@ -288,6 +288,8 @@ async function loadConfig() {
     const radioIntensityValue = document.getElementById('radio-intensity-value');
     const clickSoundCheckbox = document.getElementById('option-click-sound');
     const overlayCheckbox = document.getElementById('option-overlay');
+    const overlayScaleSlider = document.getElementById('option-overlay-scale');
+    const overlayScaleValue = document.getElementById('overlay-scale-value');
     
     if (overlayCheckbox) overlayCheckbox.checked = settings.overlayEnabled !== false;
     if (radioEffectCheckbox) radioEffectCheckbox.checked = settings.radioEffectEnabled !== false;
@@ -297,6 +299,13 @@ async function loadConfig() {
         const intensity = settings.radioEffectIntensity ?? 50;
         radioIntensitySlider.value = intensity;
         if (radioIntensityValue) radioIntensityValue.textContent = intensity + '%';
+    }
+
+    // Overlay scale slider
+    if (overlayScaleSlider) {
+        const scale = settings.overlayScale ?? 100;
+        overlayScaleSlider.value = scale;
+        if (overlayScaleValue) overlayScaleValue.textContent = scale + '%';
     }
     
     // Show/hide intensity slider based on radio effect state
@@ -474,6 +483,25 @@ function setupEventListeners() {
     // Reset config
     const btnReset = document.getElementById('btn-reset-config');
     if (btnReset) btnReset.onclick = resetConfig;
+
+    // Download logs
+    const btnDownloadLogs = document.getElementById('btn-download-logs');
+    if (btnDownloadLogs) {
+        btnDownloadLogs.onclick = async () => {
+            const result = await window.api.logs.export();
+            if (result.success) {
+                addLog(`Logs saved to ${result.path}`, 'success');
+            } else if (!result.canceled) {
+                addLog(`Failed to save logs: ${result.error || 'unknown error'}`, 'error');
+            }
+        };
+    }
+
+    // Open logs folder
+    const btnOpenLogsFolder = document.getElementById('btn-open-logs-folder');
+    if (btnOpenLogsFolder) {
+        btnOpenLogsFolder.onclick = () => window.api.logs.openFolder();
+    }
     
     // Keybind inputs
     document.querySelectorAll('.keybind-input').forEach(input => {
@@ -567,7 +595,19 @@ function setupEventListeners() {
             document.getElementById('radio-intensity-value').textContent = value + '%';
         };
     }
-    
+
+
+    // Overlay scale slider
+    const overlayScaleSlider = document.getElementById('option-overlay-scale');
+    if (overlayScaleSlider) {
+        overlayScaleSlider.oninput = async () => {
+            const value = overlayScaleSlider.value;
+            document.getElementById('overlay-scale-value').textContent = value + '%';
+            // Apply in real-time
+            await window.api.overlay.setScale(parseInt(value));
+        };
+    }
+        
     // Show/hide intensity slider based on radio effect toggle
     const radioEffectCheckbox = document.getElementById('option-radio-effect');
     if (radioEffectCheckbox) {
@@ -864,6 +904,9 @@ function toggleBriefingMode() {
 // Handle relay events
 function handleRelayEvent({ event, data }) {
     switch (event) {
+        case 'overlay-data':
+            updateListenersCount(data);
+            break;
         case 'bot-connected':
             addLog(`✓ ${data.name} connected`, 'success');
             updateBotStatus(data.index, true);
@@ -1091,6 +1134,8 @@ async function saveOptions() {
     const radioEffectEnabled = document.getElementById('option-radio-effect').checked;
     const radioEffectIntensity = parseInt(document.getElementById('option-radio-intensity').value);
     const clickSoundEnabled = document.getElementById('option-click-sound').checked;
+    const overlayScale = parseInt(document.getElementById('option-overlay-scale').value);
+
     
     // Get theme from inputs
     const theme = {
@@ -1113,6 +1158,7 @@ async function saveOptions() {
     settings.radioEffectEnabled = radioEffectEnabled;
     settings.radioEffectIntensity = radioEffectIntensity;
     settings.clickSoundEnabled = clickSoundEnabled;
+    settings.overlayScale = overlayScale;
     
     await window.api.config.set('settings', settings);
     await window.api.config.set('theme', theme);
@@ -2187,7 +2233,41 @@ function selectWizardChannelFromAutocomplete(targetNumber) {
     }
 }
 
-
+// Update listeners count on channel buttons
+function updateListenersCount(data) {
+    console.log('🔍 updateListenersCount called:', data);
+    
+    // ✅ SUPPRIME LA VÉRIFICATION isRunning - elle bloque tout
+    if (!data) return;
+    
+    const target = currentTarget;
+    const count = data.listeners || 0;
+    
+    console.log('🔍 Target:', target, 'Count:', count);
+    
+    // Reset all counters
+    document.getElementById('listeners-mute').textContent = `👥 0`;
+    document.getElementById('listeners-all').textContent = `👥 0`;
+    document.getElementById('listeners-channel1').textContent = `👥 0`;
+    document.getElementById('listeners-channel2').textContent = `👥 0`;
+    document.getElementById('listeners-channel3').textContent = `👥 0`;
+    
+    // Update the appropriate counter based on current target
+    if (target === 'mute') {
+        console.log('🔍 Setting MUTE to:', count);
+        document.getElementById('listeners-mute').textContent = `👥 ${count}`;
+    } else if (target === 'all') {
+        console.log('🔍 Setting ALL to:', count);
+        document.getElementById('listeners-all').textContent = `👥 ${count}`;
+    } else if (target.startsWith('channel')) {
+        console.log('🔍 Setting channel to:', count);
+        const channelId = `listeners-${target}`;
+        const element = document.getElementById(channelId);
+        if (element) {
+            element.textContent = `👥 ${count}`;
+        }
+    }
+}
 
 
 // Initialize on load
