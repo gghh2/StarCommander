@@ -24,8 +24,38 @@ if (isDev) console.log('[Main] Dev mode - userData:', app.getPath('userData'));
 const Store = require('electron-store');
 
 // Config store (saved in %APPDATA%/star-commander/)
+// Schema lets electron-store reset the field (rather than crash the app)
+// if the user hand-edits config.json into something malformed.
+const configSchema = {
+    mode: { type: ['string', 'null'] },
+    tokens: {
+        type: 'object',
+        properties: {
+            emitter: { type: 'string' },
+            receivers: { type: 'object', additionalProperties: { type: 'string' } },
+            names: { type: 'object', additionalProperties: { type: 'string' } }
+        }
+    },
+    channels: {
+        type: 'object',
+        properties: {
+            source: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' } } },
+            targets: { type: 'array', maxItems: 32 },
+            relay: { type: 'object', properties: { id: { type: 'string' }, webhookUrl: { type: 'string' } } }
+        }
+    },
+    chiefs: { type: 'array', maxItems: 100 },
+    myChiefId: { type: ['string', 'null'] },
+    keybinds: { type: 'object' },
+    settings: { type: 'object' },
+    language: { type: 'string', maxLength: 16 },
+    setupComplete: { type: 'boolean' }
+};
+
 const store = new Store({
     name: 'config',
+    schema: configSchema,
+    clearInvalidConfig: true, // wipe corrupt file instead of crashing
     defaults: {
         mode: null, // 'commandant' or 'chief'
         tokens: {
