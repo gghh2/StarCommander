@@ -7,6 +7,8 @@ node_modules/
 # Personal configuration (contains tokens/user IDs)
 config.json
 starcommander-config.json
+cert-test-config.json
+cert-notes.txt
 
 # Logs
 *.log

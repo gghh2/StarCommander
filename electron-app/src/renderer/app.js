@@ -536,6 +536,27 @@ function setupEventListeners() {
         wizardBtnLoadChannels.onclick = loadWizardChannels;
     }
 
+    // Wizard: open the Discord Developer Portal
+    const wizardDevPortal = document.getElementById('wizard-open-devportal');
+    if (wizardDevPortal) {
+        wizardDevPortal.addEventListener('click', () => {
+            window.api.openExternal('https://discord.com/developers/applications');
+        });
+    }
+
+    // Wizard: one-click bot invite buttons (decode client ID from the token)
+    document.querySelectorAll('.wizard-invite-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.tokenInput);
+            const url = botInviteUrl(input ? input.value : '');
+            if (url) {
+                window.api.openExternal(url);
+            } else {
+                alert(window.i18n.t('wizard.inviteBotNoToken'));
+            }
+        });
+    });
+
     // Wizard: Channel search inputs
     for (let i = 1; i <= 3; i++) {
         const searchInput = document.getElementById(`wizard-target${i}-search`);
@@ -965,6 +986,25 @@ function handleRelayEvent({ event, data }) {
         case 'briefing-ended':
             addLog(`📢 ${window.i18n.t('logs.briefingEnded', { count: data.movedCount })}`, 'success');
             break;
+    }
+}
+
+// Build a Discord OAuth2 bot-invite URL from a bot token.
+// A Discord token's first dot-segment is the base64url-encoded client ID,
+// so we can offer a one-click invite without asking the user for it separately.
+function botInviteUrl(token) {
+    if (!token || typeof token !== 'string') return null;
+    const seg = token.trim().split('.')[0];
+    if (!seg) return null;
+    try {
+        const b64 = seg.replace(/-/g, '+').replace(/_/g, '/');
+        const clientId = atob(b64);
+        if (!/^\d{17,20}$/.test(clientId)) return null;
+        // Permissions: View Channels, Send Messages, Read History,
+        // Connect, Speak, Use Voice Activity, Move Members.
+        return `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=53545984&scope=bot`;
+    } catch (e) {
+        return null;
     }
 }
 

@@ -641,7 +641,7 @@
                     <button class="mode-card" id="btn-cmd-import">
                         <span class="mode-icon">📥</span>
                         <span class="mode-title" data-i18n="wizard.yes">YES</span>
-                        <span class="mode-desc" data-i18n="wizard.yesConfig_desc">I have a config.json file</span>
+                        <span class="mode-desc" data-i18n="wizard.yesConfig_desc">I have a starcommander-config.json file</span>
                     </button>
                     <button class="mode-card" id="btn-cmd-new">
                         <span class="mode-icon">➕</span>
@@ -679,32 +679,34 @@
             <!-- Step 1: Create Bots -->
             <div class="wizard-step" id="wizard-step-cmd-1" style="display: none;">
                 <h3 data-i18n="wizard.step1_title">Step 1: Create Discord Bots</h3>
+                <div class="wizard-location" data-i18n="wizard.loc_devPortal">📍 Discord Developer Portal — a website (discord.com/developers), separate from the Discord app</div>
                 <p data-i18n="wizard.step1_intro" data-i18n-html>You need to create <strong>4 Discord bots</strong>:</p>
                 <ul>
                     <li data-i18n="wizard.step1_emitter" data-i18n-html><strong>1 Emitter</strong> - listens to commanders channel</li>
                     <li data-i18n="wizard.step1_receivers" data-i18n-html><strong>3 Receivers</strong> - speak in target channels</li>
                 </ul>
-                
+
                 <div class="wizard-instructions">
                     <h4 data-i18n="wizard.step1_instructions">📝 For each bot:</h4>
                     <ol>
-                        <li data-i18n="wizard.step1_instr1">Go to Discord Developer Portal</li>
+                        <li data-i18n="wizard.step1_instr1">Go to the Discord Developer Portal</li>
                         <li data-i18n="wizard.step1_instr2" data-i18n-html>Click <strong>"New Application"</strong> → Name it</li>
                         <li data-i18n="wizard.step1_instr3" data-i18n-html><strong>"Bot"</strong> tab → <strong>"Reset Token"</strong> → Copy</li>
-                        <li data-i18n="wizard.step1_instr4" data-i18n-html>Enable <strong>Privileged Gateway Intents</strong>:
-                            <ul>
-                                <li data-i18n="wizard.step1_instr4_1">✅ Presence Intent</li>
-                                <li data-i18n="wizard.step1_instr4_2" data-i18n-html>✅ Server Members Intent <span class="required">(required!)</span></li>
-                                <li data-i18n="wizard.step1_instr4_3">✅ Message Content Intent</li>
-                            </ul>
-                        </li>
-                        <li data-i18n="wizard.step1_instr5" data-i18n-html><strong>"OAuth2" → "URL Generator"</strong></li>
-                        <li data-i18n="wizard.step1_instr6" data-i18n-html>Scopes: <strong>bot</strong> | Permissions: <strong>Connect, Speak</strong></li>
-                        <li data-i18n="wizard.step1_instr7">Invite the bot to your server</li>
                     </ol>
                 </div>
-                
-                <p class="wizard-note" data-i18n="wizard.step1_note">⚠️ Repeat for all 4 bots, then click Next</p>
+
+                <button class="btn" id="wizard-open-devportal" data-i18n="wizard.openDevPortal">🌐 Open Discord Developer Portal</button>
+
+                <div class="wizard-instructions" style="margin-top: 15px;">
+                    <h4 data-i18n="wizard.step1_instr4" data-i18n-html><strong>For the Emitter bot only</strong> — enable these Privileged Gateway Intents (Bot tab):</h4>
+                    <ul>
+                        <li data-i18n="wizard.step1_instr4_2" data-i18n-html>✅ Server Members Intent <span class="required">(required!)</span></li>
+                        <li data-i18n="wizard.step1_instr4_3">✅ Message Content Intent</li>
+                    </ul>
+                    <p class="wizard-note" data-i18n="wizard.step1_receiversNoIntent">The 3 Receiver bots need no intents.</p>
+                </div>
+
+                <p class="wizard-note" data-i18n="wizard.step1_note">⚠️ Create all 4 bots. You'll invite them to your server in the next step, one click each.</p>
                 <button class="btn" onclick="wizardStep('cmd-0')" data-i18n="wizard.back">← Back</button>
                 <button class="btn btn-primary" onclick="wizardStep('cmd-2')" data-i18n="wizard.next">Next →</button>
             </div>
@@ -712,21 +714,26 @@
             <!-- Step 2: Tokens -->
             <div class="wizard-step" id="wizard-step-cmd-2" style="display: none;">
                 <h3 data-i18n="wizard.step2_title">Step 2: Bot Tokens</h3>
+                <p class="wizard-note" data-i18n="wizard.step2_inviteHint">Paste each bot token below, then click "Invite this bot" — a Discord page opens where you pick your server.</p>
                 <div class="form-group">
                     <label data-i18n="wizard.emitterToken">Emitter Token</label>
                     <input type="password" id="wizard-token-emitter" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
+                    <button type="button" class="btn wizard-invite-btn" data-token-input="wizard-token-emitter" data-i18n="wizard.inviteBot">🔗 Invite this bot to my server</button>
                 </div>
                 <div class="form-group">
                     <label data-i18n="wizard.receiver1Token">Receiver 1 Token</label>
                     <input type="password" id="wizard-token-receiver1" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
+                    <button type="button" class="btn wizard-invite-btn" data-token-input="wizard-token-receiver1" data-i18n="wizard.inviteBot">🔗 Invite this bot to my server</button>
                 </div>
                 <div class="form-group">
                     <label data-i18n="wizard.receiver2Token">Receiver 2 Token</label>
                     <input type="password" id="wizard-token-receiver2" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
+                    <button type="button" class="btn wizard-invite-btn" data-token-input="wizard-token-receiver2" data-i18n="wizard.inviteBot">🔗 Invite this bot to my server</button>
                 </div>
                 <div class="form-group">
                     <label data-i18n="wizard.receiver3Token">Receiver 3 Token</label>
                     <input type="password" id="wizard-token-receiver3" data-i18n-placeholder="wizard.pasteToken" placeholder="Paste the token...">
+                    <button type="button" class="btn wizard-invite-btn" data-token-input="wizard-token-receiver3" data-i18n="wizard.inviteBot">🔗 Invite this bot to my server</button>
                 </div>
                 <p class="wizard-note" data-i18n="wizard.tokensLocal">🔒 Tokens are stored locally only</p>
                 <button class="btn" onclick="wizardStep('cmd-1')" data-i18n="wizard.back">← Back</button>
@@ -736,14 +743,15 @@
 			<!-- Step 3: Channels -->
 			<div class="wizard-step" id="wizard-step-cmd-3" style="display: none;">
 			    <h3 data-i18n="wizard.step3_title">Step 3: Configure Voice Channels</h3>
-			    
+			    <div class="wizard-location" data-i18n="wizard.loc_discordApp">📍 In the Discord app — your server's channel list</div>
+
 			    <!-- Load Channels Button -->
 			    <button class="btn" id="wizard-btn-load-channels" style="margin-bottom: 15px;">
 			        <span id="wizard-load-channels-text">🔄 Load Discord Channels</span>
 			    </button>
-			    
-			    <p class="wizard-note" data-i18n="wizard.step3_note">💡 Load channels above or paste IDs manually</p>
-			    
+
+			    <p class="wizard-note" data-i18n="wizard.step3_note">💡 Use "Load Discord Channels" above, or paste IDs manually. To copy an ID: Discord → User Settings → Advanced → enable Developer Mode, then right-click a channel → "Copy Channel ID".</p>
+
 			    <div class="form-group">
 			        <label data-i18n="wizard.sourceChannel">Source Channel (Commanders) - voice</label>
 			        <div style="position: relative;">
@@ -847,8 +855,9 @@
 			<!-- Step 4: Whisper Relay -->
 			<div class="wizard-step" id="wizard-step-cmd-4" style="display: none;">
 			    <h3 data-i18n="wizard.step4_title">Step 4: Configure Whisper Relay</h3>
+			    <div class="wizard-location" data-i18n="wizard.loc_discordServer">📍 In the Discord app — your server settings</div>
 			    <p data-i18n="wizard.step4_intro">Whisper allows chiefs to speak directly to the commander.</p>
-			    
+
 			    <div class="wizard-instructions">
 			        <h4 data-i18n="wizard.step4_relay_title">📡 Create the relay channel:</h4>
 			        <ol>

@@ -675,6 +675,27 @@ hr {
     margin: 12px 0;
 }
 
+/* Location badge — tells the user WHERE a wizard step happens
+   (Discord Developer Portal website vs Discord app vs server settings) */
+.wizard-location {
+    display: block;
+    background: rgba(17, 169, 237, 0.12);
+    border-left: 3px solid var(--accent);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 8px 0 14px;
+}
+
+/* Bot invite button in the wizard token step */
+.wizard-invite-btn {
+    margin-top: 6px;
+    font-size: 12px;
+    width: 100%;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
